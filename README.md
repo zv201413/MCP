@@ -116,7 +116,7 @@ self-sign-cert=true
 插件启动成功后，会在服务器根目录自动创建一个隐藏的 `.cache/` 文件夹，所有信息均保存在此。
 
 > [!IMPORTANT]
-> 节点信息**5分钟**之后销毁，请及时保存！
+>  `.cache/` 文件夹，所有信息将在节点生成 **5分钟** 之后销毁，请及时保存！
 
 ### 1. 获取代理节点（订阅链接）
 
@@ -135,12 +135,13 @@ self-sign-cert=true
 
 ---
 
-## ⚠️ 隐蔽与安全
+## 🤝 特别鸣谢
 
-- **进程伪装**：sing-box 进程在系统监控中显示为 `java`，SSHX 显示为 `java-agent`。
-- **文件伪装**：sing-box 配置文件伪装为 `gc.log`，证书文件伪装为 `javacore.txt` 和 `heapdump.hprof`。
-- **自动清理**：插件启动 30 秒后会自动删除磁盘上的二进制程序文件，实现真正的“无文件运行”，仅保留进程在内存中。
-- **证书安全**：默认生成自签名 ECC 证书，支持 TLS 混淆。
+本项目在开发过程中参考并借鉴了以下优秀项目及文章，感谢原作者的无私分享：
+
+- **[Sing-box-main](https://github.com/eooce/Sing-box)**：提供了受限环境下的核心代理逻辑参考。
+- **[vevc/world-magic](https://github.com/vevc/world-magic)**：本项目的基础架构来源。
+- **[liming](https://liming.hidns.vip/index.php/archives/34/)**：感谢作者 liming 在文章中分享的技术思路与实践经验。
 
 ---
 
