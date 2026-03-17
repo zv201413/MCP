@@ -3,10 +3,13 @@ name: Build WorldMagic Plugin
 on:
   push:
     branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
   workflow_dispatch:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   build:
@@ -17,8 +20,6 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-        # 修复 Exit Code 128 的关键：不处理有问题的子模块
-        submodules: false 
 
     - name: Set up JDK 21
       uses: actions/setup-java@v4
@@ -27,18 +28,20 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
-    - name: Force Clean Git Index
-      run: |
-        # 强行移除可能导致 128 错误的不规范目录索引
-        git rm -r --cached world-magic-new || echo "No directory to clear"
-        git rm -r --cached world-magic-upload || echo "No directory to clear"
-
     - name: Build with Maven
-      run: mvn clean package -DskipTests -B
+      run: mvn clean package -B
 
     - name: Upload JAR artifact
       uses: actions/upload-artifact@v4
       with:
         name: world-magic-jar
-        # 确保路径匹配 pom.xml 定义的生成位置
-        path: target/*.jar
+        path: target/world-magic.jar
+        retention-days: 30
+
+    - name: Create Release on tag
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v2
+      with:
+        files: target/world-magic.jar
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
