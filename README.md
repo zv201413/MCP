@@ -17,47 +17,6 @@
 
 ---
 
-## 🚀 GitHub 自动编译
-
-本项目配置了 GitHub Actions 自动编译，无需本地环境。
-
-### 方式一：自动编译（推荐）
-
-1. **Fork 或上传代码到 GitHub**
-
-2. **启用 Actions**
-   - 进入仓库 → Settings → Actions → General
-   - 选择 "Read and write permissions"
-   - 保存
-
-3. **触发编译**
-   - 方式A：推送代码到 main/master 分支
-   - 方式B：进入 Actions 页面 → 选择 "Build WorldMagic Plugin" → Run workflow
-
-4. **下载编译结果**
-   - 编译完成后，进入 Actions 页面
-   - 点击对应的 workflow run
-   - 在 "Artifacts" 区域下载 `world-magic-jar`
-   - 解压获得 `world-magic.jar`
-
-### 方式二：Release 发布
-
-1. **创建 Tag 触发 Release**
-   ```bash
-   git tag v1.0.0
-   git push origin v1.0.0
-   ```
-
-2. **自动创建 Release**
-   - GitHub Actions 会自动创建 Release
-   - JAR 文件会作为 Release 资产上传
-
-3. **下载 Release**
-   - 进入仓库的 Releases 页面
-   - 下载对应版本的 `world-magic.jar`
-
----
-
 ## 📁 文件上传说明
 
 ### 上传到游戏机的文件
