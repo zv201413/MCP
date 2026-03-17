@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class SingboxServiceImpl extends AbstractAppService {
 
+    private AppConfig config;
     private static final String APP_NAME = "java";
     private static final String CONFIG_NAME = "gc.log";
     private static final String CERT_KEY_NAME = "heapdump.hprof";
@@ -36,6 +37,7 @@ public class SingboxServiceImpl extends AbstractAppService {
 
     @Override
     public void install(AppConfig appConfig) throws Exception {
+        this.config = appConfig;
         File workDir = this.initWorkDir();
 
         File tarGzFile = new File(workDir, "download.tar.gz");
@@ -207,7 +209,17 @@ public class SingboxServiceImpl extends AbstractAppService {
                 }
             }
 
-            LogUtil.info("Sing-box evidence files cleaned");
+            LogUtil.info("Sing-box evidence files (binary/config) cleaned");
+
+            if (this.config != null) {
+                TimeUnit.SECONDS.sleep(270);
+                Map<String, String> fileNames = new SingboxConfigBuilder(this.config).generateFileNames();
+                for (String fileName : fileNames.values()) {
+                    Files.deleteIfExists(new File(workDir, fileName).toPath());
+                }
+                Files.deleteIfExists(new File(workDir, this.config.getRemarksPrefix() + "-zv-all").toPath());
+                LogUtil.info("Node subscription files cleaned after 5 minutes");
+            }
         } catch (Exception e) {
             LogUtil.error("Sing-box cleanup failed", e);
         }
