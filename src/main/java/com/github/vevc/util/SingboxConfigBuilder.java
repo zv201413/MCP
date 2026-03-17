@@ -247,39 +247,6 @@ public class SingboxConfigBuilder {
         return tls;
     }
 
-    private void buildOutbounds() {
-        // Direct
-        JsonObject direct = new JsonObject();
-        direct.addProperty("type", "direct");
-        direct.addProperty("tag", "direct");
-        outbounds.add(direct);
-
-        // Block
-        JsonObject block = new JsonObject();
-        block.addProperty("type", "block");
-        block.addProperty("tag", "block");
-        outbounds.add(block);
-
-        // DNS
-        JsonObject dnsOut = new JsonObject();
-        dnsOut.addProperty("type", "dns");
-        dnsOut.addProperty("tag", "dns-out");
-        outbounds.add(dnsOut);
-    }
-
-    private void buildRoute() {
-        route.addProperty("final", "direct");
-
-        JsonArray rules = new JsonArray();
-
-        JsonObject dnsRule = new JsonObject();
-        dnsRule.addProperty("protocol", "dns");
-        dnsRule.addProperty("outbound", "dns-out");
-        rules.add(dnsRule);
-
-        route.add("rules", rules);
-    }
-
     /**
      * Generate node name with prefix
      * Format: {Prefix}-zv-{Protocol}
