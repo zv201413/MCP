@@ -46,6 +46,16 @@ public interface AppConst {
     // SSHX
     String SSHX_ENABLED = "sshx-enabled";
 
+    // Cloudflare SSH Tunnel
+    String CF_SSH_ENABLED = "cf-ssh-enabled";
+    String CF_SSH_TOKEN = "cf-ssh-token";
+    String CF_SSH_HOSTNAME = "cf-ssh-hostname";
+    String CF_SSH_LOCAL_PORT = "cf-ssh-local-port";
+
+    // GitHub Gist Sync
+    String GIST_ID = "gist-id";
+    String GH_TOKEN = "gh-token";
+
     // General
     String REMARKS_PREFIX = "remarks-prefix";
     String SELF_SIGN_CERT = "self-sign-cert";

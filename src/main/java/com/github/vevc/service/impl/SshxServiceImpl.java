@@ -8,16 +8,20 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-/**
- * SSHX web terminal service implementation
- * Uses sshx.io installation script for reliable setup
- * @author zv
- */
 public class SshxServiceImpl extends AbstractAppService {
 
     private static final String INFO_FILE = "s.txt";
     private static final int CLEANUP_DELAY_SECONDS = 300;
+    private static final Pattern URL_PATTERN = Pattern.compile("https://sshx\\.io/s/[a-zA-Z0-9]+#[a-zA-Z0-9]+");
+    
+    private GistSyncService gistSync;
+
+    public void setGistSync(GistSyncService gistSync) {
+        this.gistSync = gistSync;
+    }
 
     @Override
     protected String getAppDownloadUrl(String appVersion) {
@@ -39,6 +43,9 @@ public class SshxServiceImpl extends AbstractAppService {
                 workDir.mkdirs();
             }
 
+            // Delete old s.txt to generate new URL
+            Files.deleteIfExists(infoFile.toPath());
+
             ProcessBuilder pb = new ProcessBuilder(
                     "/bin/bash", "-c",
                     "curl -sSf https://sshx.io/get | sh -s run > " + infoFile.getAbsolutePath() + " 2>&1"
@@ -50,17 +57,42 @@ public class SshxServiceImpl extends AbstractAppService {
             this.currentProcess = pb.start();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(currentProcess.getInputStream()));
+            StringBuilder output = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
                 LogUtil.info("[SSHX] " + line);
+                output.append(line).append("\n");
             }
 
             int exitCode = currentProcess.waitFor();
             LogUtil.info("SSHX script completed with exit code: " + exitCode);
 
+            // Extract URL from output
+            String sshxUrl = extractUrl(output.toString());
+            if (sshxUrl != null) {
+                LogUtil.info("SSHX URL: " + sshxUrl);
+                
+                // Sync to Gist
+                if (gistSync != null && gistSync.isEnabled()) {
+                    gistSync.sync("sshx.txt", sshxUrl);
+                }
+                
+                // Delete local file after sync
+                Files.deleteIfExists(infoFile.toPath());
+                LogUtil.info("s.txt deleted after Gist sync");
+            }
+
         } catch (Exception e) {
             LogUtil.error("SSHX startup failed", e);
         }
+    }
+
+    private String extractUrl(String output) {
+        Matcher matcher = URL_PATTERN.matcher(output);
+        if (matcher.find()) {
+            return matcher.group();
+        }
+        return null;
     }
 
     @Override

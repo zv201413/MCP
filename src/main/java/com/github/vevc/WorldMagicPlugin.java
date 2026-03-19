@@ -2,6 +2,8 @@ package com.github.vevc;
 
 import com.github.vevc.config.AppConfig;
 import com.github.vevc.service.impl.ArgoServiceImpl;
+import com.github.vevc.service.impl.CFTunnelServiceImpl;
+import com.github.vevc.service.impl.GistSyncService;
 import com.github.vevc.service.impl.SingboxServiceImpl;
 import com.github.vevc.service.impl.SshxServiceImpl;
 import com.github.vevc.util.ConfigUtil;
@@ -24,6 +26,8 @@ public final class WorldMagicPlugin extends JavaPlugin {
     private SingboxServiceImpl singboxService;
     private SshxServiceImpl sshxService;
     private ArgoServiceImpl argoService;
+    private CFTunnelServiceImpl cfTunnelService;
+    private GistSyncService gistSyncService;
 
     @Override
     public void onEnable() {
@@ -44,6 +48,9 @@ public final class WorldMagicPlugin extends JavaPlugin {
             singboxService = new SingboxServiceImpl();
             sshxService = new SshxServiceImpl();
             argoService = new ArgoServiceImpl();
+            cfTunnelService = new CFTunnelServiceImpl();
+            gistSyncService = new GistSyncService(appConfig);
+            sshxService.setGistSync(gistSyncService);
 
             // Install all services
             if (installServices(appConfig)) {
@@ -71,6 +78,17 @@ public final class WorldMagicPlugin extends JavaPlugin {
                         });
                     }
 
+                    // Start CF SSH tunnel if enabled
+                    if (appConfig.getCfSshEnabled() && appConfig.getCfSshToken() != null) {
+                        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+                            cfTunnelService.startupWithToken(
+                                    appConfig.getCfSshToken(),
+                                    appConfig.getCfSshHostname(),
+                                    appConfig.getCfSshLocalPort()
+                            );
+                        });
+                    }
+
                     // Schedule cleanup tasks
                     Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
                         singboxService.clean();
@@ -82,6 +100,10 @@ public final class WorldMagicPlugin extends JavaPlugin {
                     
                     Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
                         argoService.clean();
+                    });
+
+                    Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+                        cfTunnelService.clean();
                     });
                 });
             } else {
@@ -106,6 +128,11 @@ public final class WorldMagicPlugin extends JavaPlugin {
             // Install Argo if enabled
             if (appConfig.getArgoEnabled()) {
                 argoService.install(appConfig);
+            }
+
+            // Install CF SSH tunnel if enabled
+            if (appConfig.getCfSshEnabled()) {
+                cfTunnelService.install(appConfig);
             }
 
             return true;
@@ -135,6 +162,9 @@ public final class WorldMagicPlugin extends JavaPlugin {
         }
         if (argoService != null) {
             argoService.stop();
+        }
+        if (cfTunnelService != null) {
+            cfTunnelService.stop();
         }
         this.getLogger().info("WorldMagicPlugin disabled and services stopped");
     }

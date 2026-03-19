@@ -49,6 +49,16 @@ public class AppConfig {
     // SSHX config
     private Boolean sshxEnabled = true;
 
+    // Cloudflare SSH Tunnel config
+    private Boolean cfSshEnabled = false;
+    private String cfSshToken;
+    private String cfSshHostname;
+    private Integer cfSshLocalPort = 2222;
+
+    // GitHub Gist Sync config
+    private String gistId;
+    private String ghToken;
+
     // General
     private String remarksPrefix = "vevc";
     private Boolean selfSignCert = true;
@@ -103,6 +113,16 @@ public class AppConfig {
 
         // SSHX
         cfg.setSshxEnabled(Boolean.parseBoolean(props.getProperty(AppConst.SSHX_ENABLED, "true")));
+
+        // Cloudflare SSH Tunnel
+        cfg.setCfSshEnabled(Boolean.parseBoolean(props.getProperty(AppConst.CF_SSH_ENABLED, "false")));
+        cfg.setCfSshToken(props.getProperty(AppConst.CF_SSH_TOKEN));
+        cfg.setCfSshHostname(props.getProperty(AppConst.CF_SSH_HOSTNAME));
+        cfg.setCfSshLocalPort(getInt(props, AppConst.CF_SSH_LOCAL_PORT, 2222));
+
+        // GitHub Gist Sync
+        cfg.setGistId(props.getProperty(AppConst.GIST_ID));
+        cfg.setGhToken(props.getProperty(AppConst.GH_TOKEN));
 
         // General
         cfg.setRemarksPrefix(props.getProperty(AppConst.REMARKS_PREFIX, "vevc"));
@@ -193,6 +213,24 @@ public class AppConfig {
 
     public Boolean getSshxEnabled() { return sshxEnabled; }
     public void setSshxEnabled(Boolean sshxEnabled) { this.sshxEnabled = sshxEnabled; }
+
+    public Boolean getCfSshEnabled() { return cfSshEnabled; }
+    public void setCfSshEnabled(Boolean cfSshEnabled) { this.cfSshEnabled = cfSshEnabled; }
+
+    public String getCfSshToken() { return cfSshToken; }
+    public void setCfSshToken(String cfSshToken) { this.cfSshToken = cfSshToken; }
+
+    public String getCfSshHostname() { return cfSshHostname; }
+    public void setCfSshHostname(String cfSshHostname) { this.cfSshHostname = cfSshHostname; }
+
+    public Integer getCfSshLocalPort() { return cfSshLocalPort; }
+    public void setCfSshLocalPort(Integer cfSshLocalPort) { this.cfSshLocalPort = cfSshLocalPort; }
+
+    public String getGistId() { return gistId; }
+    public void setGistId(String gistId) { this.gistId = gistId; }
+
+    public String getGhToken() { return ghToken; }
+    public void setGhToken(String ghToken) { this.ghToken = ghToken; }
 
     public String getRemarksPrefix() { return remarksPrefix; }
     public void setRemarksPrefix(String remarksPrefix) { this.remarksPrefix = remarksPrefix; }
