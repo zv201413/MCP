@@ -68,13 +68,17 @@ public final class WorldMagicPlugin extends JavaPlugin {
                     }
 
                     // Start Argo tunnel if enabled
-                    if (appConfig.getArgoEnabled() && appConfig.getArgoToken() != null) {
+                    if (appConfig.getArgoEnabled()) {
                         Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-                            argoService.startupWithToken(
-                                    appConfig.getArgoToken(),
-                                    appConfig.getArgoHostname(),
-                                    appConfig.getVmessPort()
-                            );
+                            if (appConfig.getArgoToken() != null && !appConfig.getArgoToken().isEmpty()) {
+                                argoService.startupWithToken(
+                                        appConfig.getArgoToken(),
+                                        appConfig.getArgoHostname(),
+                                        appConfig.getVmessPort()
+                                );
+                            } else {
+                                argoService.startupQuick(appConfig.getVmessPort());
+                            }
                         });
                     }
 

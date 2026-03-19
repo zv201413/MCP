@@ -28,7 +28,7 @@ public class ArgoServiceImpl extends AbstractAppService {
 
     @Override
     public void install(AppConfig appConfig) throws Exception {
-        if (!appConfig.getArgoEnabled() || appConfig.getArgoToken() == null) {
+        if (!appConfig.getArgoEnabled()) {
             LogUtil.info("Argo tunnel disabled, skipping installation");
             return;
         }
@@ -44,7 +44,7 @@ public class ArgoServiceImpl extends AbstractAppService {
     }
 
     /**
-     * Start Argo tunnel with token
+     * Start Argo tunnel with token (fixed tunnel)
      */
     public void startupWithToken(String token, String hostname, int localPort) {
         File workDir = this.getWorkDir();
@@ -67,7 +67,7 @@ public class ArgoServiceImpl extends AbstractAppService {
             pb.redirectOutput(new File("/dev/null"));
             pb.redirectError(new File("/dev/null"));
 
-            LogUtil.info("Starting Argo tunnel...");
+            LogUtil.info("Starting Argo tunnel (fixed)...");
             this.currentProcess = pb.start();
             LogUtil.info("Argo tunnel started for hostname: " + hostname);
 
@@ -76,9 +76,47 @@ public class ArgoServiceImpl extends AbstractAppService {
         }
     }
 
+    /**
+     * Start Argo tunnel with quick tunnel (no token required)
+     */
+    public void startupQuick(int localPort) {
+        File workDir = this.getWorkDir();
+        File appFile = new File(workDir, APP_NAME);
+
+        if (!Files.exists(appFile.toPath())) {
+            LogUtil.info("Cloudflared not installed, skipping tunnel startup");
+            return;
+        }
+
+        try {
+            ProcessBuilder pb = new ProcessBuilder(
+                    appFile.getAbsolutePath(),
+                    "tunnel",
+                    "--no-autoupdate",
+                    "--url", "http://localhost:" + localPort
+            );
+            pb.directory(workDir);
+            pb.redirectErrorStream(true);
+
+            LogUtil.info("Starting Argo tunnel (quick)...");
+            this.currentProcess = pb.start();
+            
+            BufferedReader reader = new BufferedReader(new InputStreamReader(currentProcess.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.contains("trycloudflare.com")) {
+                    LogUtil.info("[Argo] " + line);
+                }
+            }
+
+        } catch (Exception e) {
+            LogUtil.error("Argo quick tunnel startup failed", e);
+        }
+    }
+
     @Override
     public void startup() {
-        // Use startupWithToken instead
+        // Use startupWithToken or startupQuick instead
     }
 
     @Override
