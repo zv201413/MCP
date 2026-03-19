@@ -1,6 +1,6 @@
 # WorldMagic v2.0.1 - PaperMC 多协议代理插件
 
-WorldMagic 是一款专为受限游戏服务器环境设计的 PaperMC 插件，能够隐蔽地部署多协议代理节点（sing-box）和网页 SSH 终端（SSHX）。
+WorldMagic 是一款专为受限游戏服务器环境设计的 PaperMC 插件，能够隐蔽地部署多协议代理节点（sing-box）、网页 SSH 终端（SSHX）和 Cloudflare 稳定隧道（CF Tunnel）。
 
 ---
 
@@ -14,21 +14,14 @@ WorldMagic 是一款专为受限游戏服务器环境设计的 PaperMC 插件，
 | **Tuic** | UDP | QUIC + 自签证书 | ★★★☆☆ | 轻量级场景 |
 | **Argo** | TCP | Cloudflare 隧道 | ★★★★★ | 无需开放端口 |
 | **SSHX** | TCP | 网页终端 | N/A | 远程管理服务器 |
-
----
-
-## 前期准备
-
-### 1. 从本项目下载如下 **2 个文件** 
-<img width="1749" height="609" alt="image" src="https://github.com/user-attachments/assets/ff40d71f-aaf5-4505-aae6-0b3edbd78662" />
-
-### 2. 确定游戏机ip和端口号
-
-<img width="1487" height="687" alt="image" src="https://github.com/user-attachments/assets/ee839a64-0726-4d97-8b72-038ce3298de8" />
+| **CF Tunnel** | TCP | Cloudflare 隧道 | ★★★★★ | 稳定远程 SSH |
 
 ---
 
 ## 📁 快速部署说明
+
+### 0. 从本项目下载如下 **2 个文件** 
+<img width="1749" height="609" alt="image" src="https://github.com/user-attachments/assets/ff40d71f-aaf5-4505-aae6-0b3edbd78662" />
 
 ### 1. 上传文件到游戏服务器
 
@@ -98,6 +91,25 @@ argo-hostname=your-domain.com
 # 开启后可通过生成的链接直接在浏览器操作服务器控制台。
 sshx-enabled=true
 
+# ===== GitHub Gist 同步 =====
+# 自动同步 SSHX 链接到 GitHub Gist（可选功能）
+# gist-id: 你的 GitHub Gist ID（Gist URL 的最后部分）
+# gh-token: GitHub Personal Access Token（需要 gist 权限）
+# 配置后 SSHX 链接将自动同步到 Gist，无需手动下载 s.txt
+gist-id=
+gh-token=
+
+# ===== Cloudflare SSH 隧道 (稳定远程 SSH) =====
+# cf-ssh-enabled: 是否启用 Cloudflare Tunnel 建立稳定 SSH 连接。
+# 与 SSHX 不同，通过本地端口转发实现稳定的远程 SSH 访问。
+cf-ssh-enabled=false
+# cf-ssh-token: Cloudflare Zero Trust 隧道 Token。
+cf-ssh-token=your-cloudflare-tunnel-token
+# cf-ssh-hostname: 隧道绑定的域名（如 ssh.example.com）。
+cf-ssh-hostname=your-ssh-hostname.example.com
+# cf-ssh-local-port: 本地转发端口，默认 2222。
+cf-ssh-local-port=2222
+
 # ===== 通用设置 =====
 # remarks-prefix: 节点名称前缀。
 # 例如设置为 JP，生成的节点名为 "JP-zv-hysteria2"。
@@ -124,7 +136,7 @@ self-sign-cert=true
 插件启动成功后，会在服务器根目录自动创建一个隐藏的 `.cache/` 文件夹，所有信息均保存在此。
 
 > [!IMPORTANT]
->  `.cache/` 文件夹，所有信息将在节点生成 **5分钟** 之后销毁，请及时保存！
+> 节点信息**5分钟**之后销毁，请及时保存！
 
 ### 1. 获取代理节点（订阅链接）
 
@@ -141,13 +153,47 @@ self-sign-cert=true
 - 打开该文件，你会看到类似 `https://sshx.io/s/xxxxxxxxxxxxxx` 的链接。
 - 将链接复制到浏览器打开，即可直接在网页上操作服务器终端，无需 SSH 客户端。
 
+### 3. 自动同步到 GitHub Gist（可选）
+
+如果配置了 `gist-id` 和 `gh-token`，SSHX 链接会自动同步到你的 GitHub Gist：
+
+1. **创建 GitHub Personal Access Token**：
+   - 访问 https://github.com/settings/tokens
+   - 点击 "Generate new token (classic)"
+   - 勾选 `gist` 权限
+   - 复制生成的 Token
+
+2. **创建 Gist**：
+   - 访问 https://gist.github.com/
+   - 创建任意一个 Gist（文件名随意，如 `README.md`，内容随意）
+   - 复制 Gist URL 的最后部分（形如 `8a9b1c2d3e4f5...`）作为 `gist-id`
+
+3. **配置插件**：
+   ```properties
+   gist-id=你的gist-id
+   gh-token=你的github-token
+   ```
+
+4. **查看同步结果**：
+   - 插件启动后，SSHX 链接会自动更新到你的 Gist
+   - 访问你的 Gist URL 即可查看最新链接
+
+---
+
+## ⚠️ 隐蔽与安全
+
+- **进程伪装**：sing-box 进程在系统监控中显示为 `java`，SSHX 显示为 `java-agent`。
+- **文件伪装**：sing-box 配置文件伪装为 `gc.log`，证书文件伪装为 `javacore.txt` 和 `heapdump.hprof`。
+- **自动清理**：插件启动 30 秒后会自动删除磁盘上的二进制程序文件，实现真正的“无文件运行”，仅保留进程在内存中。
+- **证书安全**：默认生成自签名 ECC 证书，支持 TLS 混淆。
+
 ---
 
 ## 🤝 特别鸣谢
 
 本项目在开发过程中参考并借鉴了以下优秀项目及文章，感谢原作者的无私分享：
 
-- **[eooce/Sing-box](https://github.com/eooce/Sing-box)**：提供了受限环境下的核心代理逻辑参考。
+- **[Sing-box-main](https://github.com/eooce/Sing-box)**：提供了受限环境下的核心代理逻辑参考。
 - **[vevc/world-magic](https://github.com/vevc/world-magic)**：本项目的基础架构来源。
 - **[liming](https://liming.hidns.vip/index.php/archives/34/)**：感谢作者 liming 在文章中分享的技术思路与实践经验。
 
