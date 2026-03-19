@@ -95,9 +95,11 @@ sshx-enabled=true
 # 自动同步 SSHX 链接到 GitHub Gist（可选功能）
 # gist-id: 你的 GitHub Gist ID（Gist URL 的最后部分）
 # gh-token: GitHub Personal Access Token（需要 gist 权限）
+# gist-sshx-file: Gist 中保存 SSHX 链接的文件名
 # 配置后 SSHX 链接将自动同步到 Gist，无需手动下载 s.txt
 gist-id=
 gh-token=
+gist-sshx-file=sshx_PPMC.txt
 
 # ===== Cloudflare SSH 隧道 (稳定远程 SSH) =====
 # cf-ssh-enabled: 是否启用 Cloudflare Tunnel 建立稳定 SSH 连接。

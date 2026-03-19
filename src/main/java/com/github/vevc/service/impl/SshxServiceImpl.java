@@ -18,9 +18,14 @@ public class SshxServiceImpl extends AbstractAppService {
     private static final Pattern URL_PATTERN = Pattern.compile("https://sshx\\.io/s/[a-zA-Z0-9]+#[a-zA-Z0-9]+");
     
     private GistSyncService gistSync;
+    private String gistSshxFile = "sshx_PPMC.txt";
 
     public void setGistSync(GistSyncService gistSync) {
         this.gistSync = gistSync;
+    }
+
+    public void setGistSshxFile(String gistSshxFile) {
+        this.gistSshxFile = gistSshxFile;
     }
 
     @Override
@@ -74,7 +79,7 @@ public class SshxServiceImpl extends AbstractAppService {
                 
                 // Sync to Gist
                 if (gistSync != null && gistSync.isEnabled()) {
-                    gistSync.sync("sshx_PPMC.txt", sshxUrl);
+                    gistSync.sync(gistSshxFile, sshxUrl);
                 }
                 
                 // Delete local file after sync

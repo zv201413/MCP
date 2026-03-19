@@ -51,6 +51,7 @@ public final class WorldMagicPlugin extends JavaPlugin {
             cfTunnelService = new CFTunnelServiceImpl();
             gistSyncService = new GistSyncService(appConfig);
             sshxService.setGistSync(gistSyncService);
+            sshxService.setGistSshxFile(appConfig.getGistSshxFile());
 
             // Install all services
             if (installServices(appConfig)) {

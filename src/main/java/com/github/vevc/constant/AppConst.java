@@ -55,6 +55,7 @@ public interface AppConst {
     // GitHub Gist Sync
     String GIST_ID = "gist-id";
     String GH_TOKEN = "gh-token";
+    String GIST_SSHX_FILE = "gist-sshx-file";
 
     // General
     String REMARKS_PREFIX = "remarks-prefix";

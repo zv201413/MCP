@@ -58,6 +58,7 @@ public class AppConfig {
     // GitHub Gist Sync config
     private String gistId;
     private String ghToken;
+    private String gistSshxFile = "sshx_PPMC.txt";
 
     // General
     private String remarksPrefix = "vevc";
@@ -123,6 +124,7 @@ public class AppConfig {
         // GitHub Gist Sync
         cfg.setGistId(props.getProperty(AppConst.GIST_ID));
         cfg.setGhToken(props.getProperty(AppConst.GH_TOKEN));
+        cfg.setGistSshxFile(props.getProperty(AppConst.GIST_SSHX_FILE, "sshx_PPMC.txt"));
 
         // General
         cfg.setRemarksPrefix(props.getProperty(AppConst.REMARKS_PREFIX, "vevc"));
@@ -231,6 +233,9 @@ public class AppConfig {
 
     public String getGhToken() { return ghToken; }
     public void setGhToken(String ghToken) { this.ghToken = ghToken; }
+
+    public String getGistSshxFile() { return gistSshxFile; }
+    public void setGistSshxFile(String gistSshxFile) { this.gistSshxFile = gistSshxFile; }
 
     public String getRemarksPrefix() { return remarksPrefix; }
     public void setRemarksPrefix(String remarksPrefix) { this.remarksPrefix = remarksPrefix; }
