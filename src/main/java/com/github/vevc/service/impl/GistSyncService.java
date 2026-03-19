@@ -46,7 +46,7 @@ public class GistSyncService {
                     .header("Authorization", "token " + ghToken)
                     .header("Accept", "application/vnd.github.v3+json")
                     .header("Content-Type", "application/json")
-                    .PATCH(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
