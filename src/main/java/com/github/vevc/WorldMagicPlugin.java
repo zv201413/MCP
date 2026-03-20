@@ -167,16 +167,13 @@ public final class WorldMagicPlugin extends JavaPlugin {
         if (cacheDir == null || !cacheDir.exists()) return;
         
         String prefix = singboxService.getRemarksPrefix();
-        String[] files = {prefix + "-zv-hysteria2", prefix + "-zv-vmess-ws", prefix + "-zv-argo", prefix + "-zv-all"};
-        for (String file : files) {
-            File f = new File(cacheDir, file);
-            if (f.exists()) {
-                try {
-                    String content = java.nio.file.Files.readString(f.toPath());
-                    gistSyncService.sync(file, content);
-                } catch (Exception e) {
-                    LogUtil.info("[Gist] Failed to read " + file + ": " + e.getMessage());
-                }
+        File allFile = new File(cacheDir, prefix + "-zv-all");
+        if (allFile.exists()) {
+            try {
+                String content = java.nio.file.Files.readString(allFile.toPath());
+                gistSyncService.sync("sub.txt", content);
+            } catch (Exception e) {
+                LogUtil.info("[Gist] Failed to read subscriptions: " + e.getMessage());
             }
         }
     }

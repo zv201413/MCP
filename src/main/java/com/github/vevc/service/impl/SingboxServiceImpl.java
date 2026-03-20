@@ -142,21 +142,6 @@ public class SingboxServiceImpl extends AbstractAppService {
         LogUtil.info("Using prefix for node names: " + prefix);
 
         Map<String, String> links = builder.generateShareLinks(serverIp);
-        Map<String, String> fileNames = builder.generateFileNames();
-
-        for (Map.Entry<String, String> entry : links.entrySet()) {
-            String protocol = entry.getKey();
-            String link = entry.getValue();
-            if (link == null || link.isEmpty()) {
-                continue;
-            }
-            String base64Link = Base64.getEncoder().encodeToString(link.getBytes(StandardCharsets.UTF_8));
-
-            String fileName = fileNames.getOrDefault(protocol, prefix + "-zv-" + protocol);
-            Path nodeFile = new File(workDir, fileName).toPath();
-            Files.write(nodeFile, Collections.singleton(base64Link));
-            LogUtil.info("Subscription file generated: " + fileName);
-        }
 
         StringBuilder allLinks = new StringBuilder();
         for (String link : links.values()) {
