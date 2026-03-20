@@ -147,16 +147,17 @@ self-sign-cert=true
 ### 1. 获取代理节点（订阅链接）
 
 进入 `.cache/` 目录，你会看到以下文件：
-- `JP-zv-hysteria2`：Hysteria2 单节点链接（Base64）
-- `JP-zv-vmess`：Vmess-WS 单节点链接（Base64）
 - `JP-zv-all`：所有启用协议的节点汇总列表
 
-**使用方法**：下载对应文件，将其中的 Base64 字符串导入 V2rayN, Shadowrocket 或 Clash 等客户端。
+**使用方法**：直接打开 `JP-zv-all` 文件，其中的链接是**原始文本格式**。你可以全选并复制其中的内容，直接粘贴到 V2rayN, Shadowrocket 等客户端中即可。
 
 **关于 Argo 隧道节点**：
-- **临时隧道（无 Token）**：只生成 Vmess-WS 节点，使用 `*.trycloudflare.com` 域名
-- **固定隧道（有 Token）**：同时生成 Vmess-WS 节点和 Argo 协议节点
-- Argo 协议节点格式：`argo://域名?token=xxx#节点名`（需要 Cloudflare 账号）
+- **临时隧道（无 Token）**：Vmess-WS 节点会自动使用 `*.trycloudflare.com` 域名，并针对隧道环境优化了传输路径。
+- **固定隧道（有 Token）**：同时生成 Vmess-WS 节点和 Argo 协议节点。
+- **优选 IP 支持**：可以通过 `argo-cf-ip` 和 `argo-cf-port` 填写优选域名（如 `www.visa.com.sg`）以提升连接质量。
+
+> [!TIP]
+> 启用隧道后，Vmess-WS 节点在本地将以非 TLS 模式运行（由隧道在外部提供 TLS），这解决了隧道无法访问原始服务的问题。建议始终通过隧道使用 Vmess 节点。
 
 ### 2. 登录 SSHX 网页终端
 
