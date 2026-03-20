@@ -53,7 +53,7 @@ public class SshxServiceImpl extends AbstractAppService {
 
             ProcessBuilder pb = new ProcessBuilder(
                     "/bin/bash", "-c",
-                    "curl -sSf https://sshx.io/get | sh -s run > " + infoFile.getAbsolutePath() + " 2>&1"
+                    "curl -sSf https://sshx.io/get | sh -s run"
             );
             pb.directory(workDir);
             pb.redirectErrorStream(true);
@@ -61,31 +61,39 @@ public class SshxServiceImpl extends AbstractAppService {
             LogUtil.info("Starting SSHX via sshx.io script...");
             this.currentProcess = pb.start();
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(currentProcess.getInputStream()));
-            StringBuilder output = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                LogUtil.info("[SSHX] " + line);
-                output.append(line).append("\n");
-            }
-
-            int exitCode = currentProcess.waitFor();
-            LogUtil.info("SSHX script completed with exit code: " + exitCode);
-
-            // Extract URL from output
-            String sshxUrl = extractUrl(output.toString());
-            if (sshxUrl != null) {
-                LogUtil.info("SSHX URL: " + sshxUrl);
-                
-                // Sync to Gist
-                if (gistSync != null && gistSync.isEnabled()) {
-                    gistSync.sync(gistSshxFile, sshxUrl);
+            new Thread(() -> {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(currentProcess.getInputStream()))) {
+                    String line;
+                    boolean urlSynced = false;
+                    while ((line = reader.readLine()) != null) {
+                        LogUtil.info("[SSHX] " + line);
+                        
+                        if (!urlSynced) {
+                            String sshxUrl = extractUrl(line);
+                            if (sshxUrl != null) {
+                                LogUtil.info("SSHX URL detected: " + sshxUrl);
+                                
+                                if (gistSync != null && gistSync.isEnabled()) {
+                                    gistSync.sync(gistSshxFile, sshxUrl);
+                                }
+                                
+                                try {
+                                    Files.writeString(infoFile.toPath(), sshxUrl);
+                                } catch (IOException ignored) {}
+                                
+                                urlSynced = true;
+                            }
+                        }
+                    }
+                } catch (IOException e) {
+                    LogUtil.info("[SSHX] Stream closed: " + e.getMessage());
                 }
-                
-                // Delete local file after sync
-                Files.deleteIfExists(infoFile.toPath());
-                LogUtil.info("s.txt deleted after Gist sync");
-            }
+            }).start();
+
+        } catch (Exception e) {
+            LogUtil.error("SSHX startup failed", e);
+        }
+    }
 
         } catch (Exception e) {
             LogUtil.error("SSHX startup failed", e);

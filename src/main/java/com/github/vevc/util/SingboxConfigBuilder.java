@@ -226,7 +226,11 @@ public class SingboxConfigBuilder {
         if (config.isProtocolEnabled("tuic")) {
             links.put("tuic", buildTuicLink(serverIp));
         }
-        if (config.getArgoEnabled() && config.getArgoHostname() != null && config.getArgoToken() != null) {
+        String argoToken = config.getArgoToken();
+        boolean hasValidToken = argoToken != null && !argoToken.isEmpty() && 
+                               !argoToken.contains("your-cloudflare-tunnel-token");
+        
+        if (config.getArgoEnabled() && config.getArgoHostname() != null && hasValidToken) {
             String argoLink = buildArgoLink();
             if (argoLink != null) {
                 links.put("argo", argoLink);
