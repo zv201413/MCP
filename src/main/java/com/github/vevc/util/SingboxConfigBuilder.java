@@ -107,10 +107,7 @@ public class SingboxConfigBuilder {
         inbound.add("users", users);
 
         JsonObject tls = new JsonObject();
-        tls.addProperty("enabled", true);
-        tls.addProperty("server_name", config.getDomain());
-        tls.addProperty("certificate_path", "javacore.txt");
-        tls.addProperty("key_path", "heapdump.hprof");
+        tls.addProperty("enabled", false);
         inbound.add("tls", tls);
 
         JsonObject transport = new JsonObject();
@@ -294,8 +291,8 @@ public class SingboxConfigBuilder {
         vmess.addProperty("type", "none");
         vmess.addProperty("host", host);
         vmess.addProperty("path", path);
-        vmess.addProperty("tls", "tls");
-        vmess.addProperty("sni", sni);
+        vmess.addProperty("tls", useArgo ? "tls" : "");
+        vmess.addProperty("sni", useArgo ? sni : "");
         vmess.addProperty("alpn", "h2");
         vmess.addProperty("fp", "chrome");
         vmess.addProperty("allowInsecure", 1);

@@ -145,7 +145,7 @@ public class SingboxServiceImpl extends AbstractAppService {
 
         StringBuilder allLinks = new StringBuilder();
         for (String link : links.values()) {
-            allLinks.append(Base64.getEncoder().encodeToString(link.getBytes(StandardCharsets.UTF_8))).append("\n");
+            allLinks.append(link).append("\n");
         }
 
         Path allFile = new File(workDir, prefix + "-zv-all").toPath();
