@@ -69,6 +69,10 @@ public abstract class AbstractAppService {
     protected File getWorkDir() {
         return WORK_DIR;
     }
+    
+    public static File getCacheDir() {
+        return WORK_DIR;
+    }
 
     protected void setExecutePermission(Path destFile) throws IOException {
         Set<PosixFilePermission> perms = Files.getPosixFilePermissions(destFile);

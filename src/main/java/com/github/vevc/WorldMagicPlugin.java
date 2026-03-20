@@ -163,10 +163,10 @@ public final class WorldMagicPlugin extends JavaPlugin {
         if (gistSyncService == null || !gistSyncService.isEnabled()) {
             return;
         }
-        File cacheDir = singboxService.getWorkDir();
-        if (cacheDir == null) return;
+        File cacheDir = com.github.vevc.service.AbstractAppService.getCacheDir();
+        if (cacheDir == null || !cacheDir.exists()) return;
         
-        String prefix = appConfig.getRemarksPrefix();
+        String prefix = singboxService.getRemarksPrefix();
         String[] files = {prefix + "-zv-hysteria2", prefix + "-zv-vmess-ws", prefix + "-zv-argo", prefix + "-zv-all"};
         for (String file : files) {
             File f = new File(cacheDir, file);

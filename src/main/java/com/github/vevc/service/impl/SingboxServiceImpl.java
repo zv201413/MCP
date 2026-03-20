@@ -29,6 +29,10 @@ public class SingboxServiceImpl extends AbstractAppService {
     private static final String SINGBOX_DOWNLOAD_URL =
         "https://github.com/SagerNet/sing-box/releases/download/v%s/sing-box-%s-linux-%s.tar.gz";
 
+    public String getRemarksPrefix() {
+        return config != null ? config.getRemarksPrefix() : "vevc";
+    }
+
     @Override
     protected String getAppDownloadUrl(String appVersion) {
         String arch = OS_IS_ARM ? "arm64" : "amd64";
