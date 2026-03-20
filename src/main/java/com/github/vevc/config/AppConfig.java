@@ -61,6 +61,7 @@ public class AppConfig {
     private String gistId;
     private String ghToken;
     private String gistSshxFile = "sshx_PPMC.txt";
+    private String gistSubFile = "sub.txt";
 
     // General
     private String remarksPrefix = "vevc";
@@ -129,6 +130,7 @@ public class AppConfig {
         cfg.setGistId(props.getProperty(AppConst.GIST_ID));
         cfg.setGhToken(props.getProperty(AppConst.GH_TOKEN));
         cfg.setGistSshxFile(props.getProperty(AppConst.GIST_SSHX_FILE, "sshx_PPMC.txt"));
+        cfg.setGistSubFile(props.getProperty(AppConst.GIST_SUB_FILE, "sub.txt"));
 
         // General
         cfg.setRemarksPrefix(props.getProperty(AppConst.REMARKS_PREFIX, "vevc"));
@@ -246,6 +248,9 @@ public class AppConfig {
 
     public String getGistSshxFile() { return gistSshxFile; }
     public void setGistSshxFile(String gistSshxFile) { this.gistSshxFile = gistSshxFile; }
+
+    public String getGistSubFile() { return gistSubFile; }
+    public void setGistSubFile(String gistSubFile) { this.gistSubFile = gistSubFile; }
 
     public String getRemarksPrefix() { return remarksPrefix; }
     public void setRemarksPrefix(String remarksPrefix) { this.remarksPrefix = remarksPrefix; }

@@ -58,6 +58,7 @@ public interface AppConst {
     String GIST_ID = "gist-id";
     String GH_TOKEN = "gh-token";
     String GIST_SSHX_FILE = "gist-sshx-file";
+    String GIST_SUB_FILE = "gist-sub-file";
 
     // General
     String REMARKS_PREFIX = "remarks-prefix";

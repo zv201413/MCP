@@ -171,7 +171,7 @@ public final class WorldMagicPlugin extends JavaPlugin {
         if (allFile.exists()) {
             try {
                 String content = java.nio.file.Files.readString(allFile.toPath());
-                gistSyncService.sync("sub.txt", content);
+                gistSyncService.sync(appConfig.getGistSubFile(), content);
                 gistSyncService.sync(prefix + "-zv-argo", "");
             } catch (Exception e) {
                 LogUtil.info("[Gist] Failed to read subscriptions: " + e.getMessage());
