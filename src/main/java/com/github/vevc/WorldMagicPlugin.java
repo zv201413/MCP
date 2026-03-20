@@ -29,6 +29,7 @@ public final class WorldMagicPlugin extends JavaPlugin {
     private ArgoServiceImpl argoService;
     private CFTunnelServiceImpl cfTunnelService;
     private GistSyncService gistSyncService;
+    private AppConfig appConfig;
 
     @Override
     public void onEnable() {
@@ -51,6 +52,7 @@ public final class WorldMagicPlugin extends JavaPlugin {
             argoService = new ArgoServiceImpl();
             cfTunnelService = new CFTunnelServiceImpl();
             gistSyncService = new GistSyncService(appConfig);
+            this.appConfig = appConfig;
             sshxService.setGistSync(gistSyncService);
             sshxService.setGistSshxFile(appConfig.getGistSshxFile());
 
