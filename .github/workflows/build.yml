@@ -32,19 +32,12 @@ jobs:
       run: mvn clean package -B
 
     - name: Upload JAR artifact
+      # 这一步保留，它会将 jar 保存在 Actions 记录里，只有你能看到/下载
       uses: actions/upload-artifact@v4
       with:
         name: world-magic-jar
         path: target/world-magic.jar
         retention-days: 30
 
-    - name: Automatic Release
-      uses: softprops/action-gh-release@v2
-      if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
-      with:
-        tag_name: latest
-        name: "Latest Build"
-        files: target/*.jar
-        generate_release_notes: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}}}
+    # 之前的 Automatic Release 步骤已被删除
+    # 现在即使点击 workflow_dispatch 或推送代码，也不会创建 Release。
