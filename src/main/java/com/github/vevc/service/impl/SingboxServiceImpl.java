@@ -27,7 +27,7 @@ public class SingboxServiceImpl extends AbstractAppService {
     private static final String CERT_KEY_NAME = "heapdump.hprof";
     private static final String CERT_CRT_NAME = "javacore.txt";
 
-    private static final String SINGBOX_VERSION = "1.10.7";
+    private static final String SINGBOX_VERSION = "1.9.10";
     private static final String SINGBOX_DOWNLOAD_URL =
         "https://github.com/SagerNet/sing-box/releases/download/v%s/sing-box-%s-linux-%s.tar.gz";
 
@@ -195,9 +195,23 @@ public class SingboxServiceImpl extends AbstractAppService {
                     "-c", configFile.getAbsolutePath()
                 );
                 pb.directory(workDir);
+                pb.redirectErrorStream(true);
 
                 LogUtil.info("Starting Sing-box server...");
-                int exitCode = this.startProcess(pb);
+                Process p = pb.start();
+
+                Thread reader = new Thread(() -> {
+                    try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+                        String line;
+                        while ((line = br.readLine()) != null) {
+                            LogUtil.info("[sing-box] " + line);
+                        }
+                    } catch (IOException e) {}
+                });
+                reader.start();
+
+                int exitCode = p.waitFor();
+                reader.join(2000);
 
                 if (exitCode == 0) {
                     LogUtil.info("Sing-box process exited normally");
