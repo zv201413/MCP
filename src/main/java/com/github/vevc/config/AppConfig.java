@@ -51,6 +51,11 @@ public class AppConfig {
     // SSHX config
     private Boolean sshxEnabled = true;
 
+    // ttyd config
+    private Boolean ttydEnabled = false;
+    private Integer ttydPort = 7681;
+    private String ttydPassword;
+
     // Cloudflare SSH Tunnel config
     private Boolean cfSshEnabled = false;
     private String cfSshToken;
@@ -62,6 +67,7 @@ public class AppConfig {
     private String ghToken;
     private String gistSshxFile = "sshx_PPMC.txt";
     private String gistSubFile = "sub.txt";
+    private String gistTtydFile = "ttyd_PPMC.txt";
 
     // General
     private String remarksPrefix = "vevc";
@@ -120,6 +126,11 @@ public class AppConfig {
         // SSHX
         cfg.setSshxEnabled(Boolean.parseBoolean(props.getProperty(AppConst.SSHX_ENABLED, "true")));
 
+        // ttyd
+        cfg.setTtydEnabled(Boolean.parseBoolean(props.getProperty(AppConst.TTYD_ENABLED, "false")));
+        cfg.setTtydPort(getInt(props, AppConst.TTYD_PORT, 7681));
+        cfg.setTtydPassword(props.getProperty(AppConst.TTYD_PASSWORD));
+
         // Cloudflare SSH Tunnel
         cfg.setCfSshEnabled(Boolean.parseBoolean(props.getProperty(AppConst.CF_SSH_ENABLED, "false")));
         cfg.setCfSshToken(props.getProperty(AppConst.CF_SSH_TOKEN));
@@ -131,6 +142,7 @@ public class AppConfig {
         cfg.setGhToken(props.getProperty(AppConst.GH_TOKEN));
         cfg.setGistSshxFile(props.getProperty(AppConst.GIST_SSHX_FILE, "sshx_PPMC.txt"));
         cfg.setGistSubFile(props.getProperty(AppConst.GIST_SUB_FILE, "sub.txt"));
+        cfg.setGistTtydFile(props.getProperty(AppConst.GIST_TTYD_FILE, "ttyd_PPMC.txt"));
 
         // General
         cfg.setRemarksPrefix(props.getProperty(AppConst.REMARKS_PREFIX, "vevc"));
@@ -228,6 +240,15 @@ public class AppConfig {
     public Boolean getSshxEnabled() { return sshxEnabled; }
     public void setSshxEnabled(Boolean sshxEnabled) { this.sshxEnabled = sshxEnabled; }
 
+    public Boolean getTtydEnabled() { return ttydEnabled; }
+    public void setTtydEnabled(Boolean ttydEnabled) { this.ttydEnabled = ttydEnabled; }
+
+    public Integer getTtydPort() { return ttydPort; }
+    public void setTtydPort(Integer ttydPort) { this.ttydPort = ttydPort; }
+
+    public String getTtydPassword() { return ttydPassword; }
+    public void setTtydPassword(String ttydPassword) { this.ttydPassword = ttydPassword; }
+
     public Boolean getCfSshEnabled() { return cfSshEnabled; }
     public void setCfSshEnabled(Boolean cfSshEnabled) { this.cfSshEnabled = cfSshEnabled; }
 
@@ -251,6 +272,9 @@ public class AppConfig {
 
     public String getGistSubFile() { return gistSubFile; }
     public void setGistSubFile(String gistSubFile) { this.gistSubFile = gistSubFile; }
+
+    public String getGistTtydFile() { return gistTtydFile; }
+    public void setGistTtydFile(String gistTtydFile) { this.gistTtydFile = gistTtydFile; }
 
     public String getRemarksPrefix() { return remarksPrefix; }
     public void setRemarksPrefix(String remarksPrefix) { this.remarksPrefix = remarksPrefix; }

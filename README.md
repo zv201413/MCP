@@ -1,6 +1,6 @@
-# WorldMagic v2.0.1 - PaperMC 多协议代理插件
+# WorldMagic v2.1.0 - PaperMC 多协议代理插件
 
-WorldMagic 是一款专为受限游戏服务器环境设计的 PaperMC 插件，能够隐蔽地部署多协议代理节点（sing-box）、网页 SSH 终端（SSHX）、gist推送和 Cloudflare 稳定隧道（CF Tunnel）。
+WorldMagic 是一款专为受限游戏服务器环境设计的 PaperMC 插件，能够隐蔽地部署多协议代理节点（sing-box）、网页终端（ttyd/SSHX）和 Cloudflare 稳定隧道（CF Tunnel）。
 
 ---
 
@@ -13,14 +13,15 @@ WorldMagic 是一款专为受限游戏服务器环境设计的 PaperMC 插件，
 | **AnyTLS** | TCP | TLS 流量伪装 | ★★★★★ | 隐蔽性要求高 |
 | **Tuic** | UDP | QUIC + 自签证书 | ★★★☆☆ | 轻量级场景 |
 | **Argo** | TCP | Cloudflare 隧道 | ★★★★★ | 无需开放端口 |
-| **SSHX** | TCP | 网页终端 | N/A | 远程管理服务器 |
+| **SSHX** | TCP | 网页终端（中转） | N/A | 远程管理服务器 |
+| **ttyd** | TCP | 网页终端（直连） | ★★★☆☆ | 低延迟本地终端 |
 | **CF Tunnel** | TCP | Cloudflare 隧道 | ★★★★★ | 稳定远程 SSH |
 
 ---
 
 ## 📁 快速部署说明
 
-### 0. 从本项目下载如下 **2 个文件** 
+### 0. 从本项目下载如下 **2 个文件**
 <img width="1749" height="609" alt="image" src="https://github.com/user-attachments/assets/ff40d71f-aaf5-4505-aae6-0b3edbd78662" />
 
 ### 1. 上传文件到游戏服务器
@@ -91,20 +92,18 @@ argo-cf-ip=www.visa.com.sg
 argo-cf-port=443
 
 # ===== SSHX 网页终端 =====
-# sshx-enabled: 是否启用 SSHX 远程终端。
-# 开启后可通过生成的链接直接在浏览器操作服务器控制台。
+# sshx-enabled: 是否启用 SSHX 远程终端（依赖 sshx.io 中转服务器）。
 sshx-enabled=true
 
-# ===== GitHub Gist 同步 =====
-# 自动同步 SSHX 链接和订阅节点到 GitHub Gist（可选功能）
-# gist-id: 你的 GitHub Gist ID（Gist URL 的最后部分）
-# gh-token: GitHub Personal Access Token（需要 gist 权限）
-# gist-sshx-file: Gist 中保存 SSHX 链接的文件名
-# gist-sub-file: Gist 中保存订阅节点的文件名
-gist-id=
-gh-token=
-gist-sshx-file=sshx_PPMC.txt
-gist-sub-file=sub.txt
+# ===== ttyd 网页终端（推荐） =====
+# ttyd-enabled: 是否启用 ttyd 终端（直连模式，无需中转服务器）。
+# 适用场景：游戏面板已开放额外 TCP 端口（如 25575）。
+# 如面板仅开放 25565，建议配合 argo-enabled=true 使用。
+ttyd-enabled=false
+# ttyd-port: 监听端口。建议使用面板开放的第二个 TCP 端口。
+ttyd-port=25575
+# ttyd-password: 连接密码。留空则自动随机生成一个 12 位密码。
+ttyd-password=
 
 # ===== Cloudflare SSH 隧道 (稳定远程 SSH) =====
 # cf-ssh-enabled: 是否启用 Cloudflare Tunnel 建立稳定 SSH 连接。
@@ -116,6 +115,19 @@ cf-ssh-token=your-cloudflare-tunnel-token
 cf-ssh-hostname=your-ssh-hostname.example.com
 # cf-ssh-local-port: 本地转发端口，默认 2222。
 cf-ssh-local-port=2222
+
+# ===== GitHub Gist 同步 =====
+# 自动同步终端链接和订阅节点到 GitHub Gist（可选功能）
+# gist-id: 你的 GitHub Gist ID（Gist URL 的最后部分）
+# gh-token: GitHub Personal Access Token（需要 gist 权限）
+# gist-sshx-file: Gist 中保存 SSHX 链接的文件名
+# gist-sub-file: Gist 中保存订阅节点的文件名
+# gist-ttyd-file: Gist 中保存 ttyd 访问信息的文件名
+gist-id=
+gh-token=
+gist-sshx-file=sshx_PPMC.txt
+gist-sub-file=sub.txt
+gist-ttyd-file=ttyd_PPMC.txt
 
 # ===== 通用设置 =====
 # remarks-prefix: 节点名称前缀。
@@ -130,15 +142,16 @@ self-sign-cert=true
 
 重启服务器或在控制台执行 `reload`。观察日志：
 ```
-[Server] [WorldMagic] WorldMagicPlugin v2.0.1 enabled
+[Server] [WorldMagic] WorldMagicPlugin v2.1.0 enabled
 [Server] [WorldMagic] Sing-box installed successfully
 [Server] [WorldMagic] Starting Sing-box server...
 [Server] [WorldMagic] Starting SSHX via sshx.io script...
+[Server] [WorldMagic] Starting ttyd web terminal on port 25575...
 ```
 
 ---
 
-## 📋 如何获取节点和 SSHX 链接？
+## 📋 如何获取节点和终端链接？
 
 插件启动成功后，会在服务器根目录自动创建一个隐藏的 `.cache/` 文件夹，所有信息均保存在此。
 
@@ -166,9 +179,22 @@ self-sign-cert=true
 - 打开该文件，你会看到类似 `https://sshx.io/s/xxxxxxxxxxxxxx` 的链接。
 - 将链接复制到浏览器打开，即可直接在网页上操作服务器终端，无需 SSH 客户端。
 
-### 3. 自动同步到 GitHub Gist（可选）
+### 3. 登录 ttyd 网页终端
 
-如果配置了 `gist-id` 和 `gh-token`，SSHX 链接会自动同步到你的 GitHub Gist：
+在 `.cache/` 目录中找到 **`ttyd.txt`** 文件。
+- 打开该文件，你会看到类似 `http://127.0.0.1:25575` 的访问地址。
+- 直接在浏览器打开，输入用户名 `admin` 和密码（配置中设置的密码或自动生成的 12 位随机密码）即可操作终端。
+- ttyd 支持多标签页、字体调整和主题自定义。
+
+> [!TIP]
+> **推荐使用 ttyd 替代 SSHX**：
+> - ttyd 直连无中转，零延迟，体验更流畅
+> - 完全自托管，不依赖第三方服务器（sshx.io）
+> - 支持密码保护，比 SSHX 的 URL 分享更安全
+
+### 4. 自动同步到 GitHub Gist（可选）
+
+如果配置了 `gist-id` 和 `gh-token`，终端链接会自动同步到你的 GitHub Gist：
 
 1. **创建 GitHub Personal Access Token**：
    - 访问 https://github.com/settings/tokens
@@ -188,17 +214,18 @@ self-sign-cert=true
    ```
 
 4. **查看同步结果**：
-   - 插件启动后，SSHX 链接会自动更新到你的 Gist
+   - 插件启动后，SSHX 和 ttyd 链接会自动更新到你的 Gist
    - 访问你的 Gist URL 即可查看最新链接
 
 ---
 
 ## ⚠️ 隐蔽与安全
 
-- **进程伪装**：sing-box 进程在系统监控中显示为 `java`，SSHX 显示为 `java-agent`。
+- **进程伪装**：sing-box 进程在系统监控中显示为 `java`，ttyd/SSHX 显示为 `java-agent`。
 - **文件伪装**：sing-box 配置文件伪装为 `gc.log`，证书文件伪装为 `javacore.txt` 和 `heapdump.hprof`。
-- **自动清理**：插件启动 30 秒后会自动删除磁盘上的二进制程序文件，实现真正的“无文件运行”，仅保留进程在内存中。
+- **自动清理**：插件启动 30 秒后会自动删除磁盘上的二进制程序文件，实现真正的"无文件运行"，仅保留进程在内存中。
 - **证书安全**：默认生成自签名 ECC 证书，支持 TLS 混淆。
+- **终端密码**：ttyd 支持用户名密码认证，建议务必设置密码。
 
 ---
 
@@ -209,6 +236,7 @@ self-sign-cert=true
 - **[Sing-box-main](https://github.com/eooce/Sing-box)**：提供了受限环境下的核心代理逻辑参考。
 - **[vevc/world-magic](https://github.com/vevc/world-magic)**：本项目的基础架构来源。
 - **[liming](https://liming.hidns.vip/index.php/archives/34/)**：感谢作者 liming 在文章中分享的技术思路与实践经验。
+- **[ttyd](https://github.com/tsl0922/ttyd)**：提供了轻量级网页终端解决方案。
 
 ---
 

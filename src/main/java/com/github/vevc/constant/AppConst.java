@@ -48,6 +48,12 @@ public interface AppConst {
     // SSHX
     String SSHX_ENABLED = "sshx-enabled";
 
+    // ttyd
+    String TTYD_ENABLED = "ttyd-enabled";
+    String TTYD_PORT = "ttyd-port";
+    String TTYD_PASSWORD = "ttyd-password";
+    String GIST_TTYD_FILE = "gist-ttyd-file";
+
     // Cloudflare SSH Tunnel
     String CF_SSH_ENABLED = "cf-ssh-enabled";
     String CF_SSH_TOKEN = "cf-ssh-token";

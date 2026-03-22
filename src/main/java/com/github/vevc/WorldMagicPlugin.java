@@ -6,6 +6,7 @@ import com.github.vevc.service.impl.CFTunnelServiceImpl;
 import com.github.vevc.service.impl.GistSyncService;
 import com.github.vevc.service.impl.SingboxServiceImpl;
 import com.github.vevc.service.impl.SshxServiceImpl;
+import com.github.vevc.service.impl.TtydServiceImpl;
 import com.github.vevc.util.ConfigUtil;
 import com.github.vevc.util.LogUtil;
 import org.bukkit.Bukkit;
@@ -17,15 +18,16 @@ import java.util.Properties;
 
 /**
  * WorldMagic Plugin - Multi-Protocol Proxy Server for PaperMC
- * 
- * Supports: Hysteria2, Vmess-WS, AnyTLS, Argo Tunnel, Tuic, SSHX
- * 
+ *
+ * Supports: Hysteria2, Vmess-WS, AnyTLS, Argo Tunnel, Tuic, SSHX, ttyd
+ *
  * @author vevc
  */
 public final class WorldMagicPlugin extends JavaPlugin {
 
     private SingboxServiceImpl singboxService;
     private SshxServiceImpl sshxService;
+    private TtydServiceImpl ttydService;
     private ArgoServiceImpl argoService;
     private CFTunnelServiceImpl cfTunnelService;
     private GistSyncService gistSyncService;
@@ -35,9 +37,9 @@ public final class WorldMagicPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         stopping = false;
-        this.getLogger().info("WorldMagicPlugin v2.0.0 enabled");
+        this.getLogger().info("WorldMagicPlugin v2.1.0 enabled");
         LogUtil.init(this);
-        
+
         Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
             // Load configuration
             Properties props = ConfigUtil.loadConfiguration();
@@ -52,146 +54,36 @@ public final class WorldMagicPlugin extends JavaPlugin {
             // Initialize services
             singboxService = new SingboxServiceImpl();
             singboxService.init(appConfig);
-            
+
             sshxService = new SshxServiceImpl();
             sshxService.init(appConfig);
-            
+
+            ttydService = new TtydServiceImpl();
+            ttydService.init(appConfig);
+
             argoService = new ArgoServiceImpl();
             argoService.init(appConfig);
-            
+
             cfTunnelService = new CFTunnelServiceImpl();
             cfTunnelService.init(appConfig);
-            
-            gistSyncService = new GistSyncService();
-            gistSyncService.init(appConfig);
 
-            // Install services
+            gistSyncService = new GistSyncService(appConfig);
+            this.appConfig = appConfig;
+
+            // Link GistSync to SSHX and ttyd
+            sshxService.setGistSync(gistSyncService);
+            sshxService.setGistSshxFile(appConfig.getGistSshxFile());
+            ttydService.setGistSync(gistSyncService);
+            ttydService.setGistTtydFile(appConfig.getGistTtydFile());
+
+            // Install all services
             if (!installServices(appConfig)) {
                 disablePlugin("Services installation failed");
                 return;
             }
 
-            // Start services
-            startServices(appConfig);
-
-            // Schedule cleanup tasks
-            Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
-                if (!stopping) singboxService.clean();
-            }, 30 * 20L);
-
-            Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
-                if (!stopping) sshxService.clean();
-            }, 600 * 20L);
-
-            Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
-                if (!stopping) argoService.clean();
-            }, 30 * 20L);
-
-            Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
-                if (!stopping) cfTunnelService.clean();
-            }, 300 * 20L);
-        });
-    }
-
-    @Override
-    public void onDisable() {
-        stopping = true;
-        Bukkit.getScheduler().cancelTasks(this);
-
-        if (singboxService != null) singboxService.stop();
-        if (sshxService != null) sshxService.stop();
-        if (argoService != null) argoService.stop();
-        if (cfTunnelService != null) cfTunnelService.stop();
-
-        this.getLogger().info("WorldMagicPlugin disabled and services stopped");
-    }
-
-    public boolean isStopping() {
-        return stopping;
-    }
-
-            // Initialize services
-            singboxService = new SingboxServiceImpl();
-            sshxService = new SshxServiceImpl();
-            argoService = new ArgoServiceImpl();
-            cfTunnelService = new CFTunnelServiceImpl();
-            gistSyncService = new GistSyncService(appConfig);
-            this.appConfig = appConfig;
-            sshxService.setGistSync(gistSyncService);
-            sshxService.setGistSshxFile(appConfig.getGistSshxFile());
-
-            // Install all services
-            if (installServices(appConfig)) {
-                Bukkit.getScheduler().runTask(this, () -> {
-                    // Start sing-box (multi-protocol)
-                    Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-                        singboxService.startup();
-                    });
-
-                    // Start SSHX if enabled
-                    if (appConfig.getSshxEnabled()) {
-                        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-                            sshxService.startup();
-                        });
-                    }
-
-                    // Start Argo tunnel if enabled
-                    if (appConfig.getArgoEnabled()) {
-                        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-                            if (appConfig.getArgoToken() != null && !appConfig.getArgoToken().isEmpty()) {
-                                argoService.startupWithToken(
-                                        appConfig.getArgoToken(),
-                                        appConfig.getArgoHostname(),
-                                        appConfig.getVmessPort()
-                                );
-                            } else {
-                                argoService.startupQuick(appConfig.getVmessPort());
-                                try {
-                                    Thread.sleep(5000);
-                                    String tunnelDomain = argoService.loadQuickTunnelDomain();
-                                    if (tunnelDomain != null) {
-                                        appConfig.setArgoHostname(tunnelDomain);
-                                        singboxService.generateSubscriptions();
-                                        syncSubscriptionsToGist();
-                                    }
-                                } catch (Exception e) {
-                                    LogUtil.error("Failed to capture quick tunnel domain", e);
-                                }
-                            }
-                        });
-                    }
-
-                    // Start CF SSH tunnel if enabled
-                    if (appConfig.getCfSshEnabled() && appConfig.getCfSshToken() != null) {
-                        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-                            cfTunnelService.startupWithToken(
-                                    appConfig.getCfSshToken(),
-                                    appConfig.getCfSshHostname(),
-                                    appConfig.getCfSshLocalPort()
-                            );
-                        });
-                    }
-
-                    // Schedule cleanup tasks
-                    Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-                        singboxService.clean();
-                    });
-                    
-                    Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-                        sshxService.clean();
-                    });
-                    
-                    Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-                        argoService.clean();
-                    });
-
-                    Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-                        cfTunnelService.clean();
-                    });
-                });
-            } else {
-                disablePlugin("Services installation failed");
-            }
+            // Start all services
+            startServices();
         });
     }
 
@@ -206,6 +98,11 @@ public final class WorldMagicPlugin extends JavaPlugin {
             // Install SSHX if enabled
             if (appConfig.getSshxEnabled()) {
                 sshxService.install(appConfig);
+            }
+
+            // Install ttyd if enabled
+            if (appConfig.getTtydEnabled()) {
+                ttydService.install(appConfig);
             }
 
             // Install Argo if enabled
@@ -225,13 +122,91 @@ public final class WorldMagicPlugin extends JavaPlugin {
         }
     }
 
+    /**
+     * Start all enabled services
+     */
+    private void startServices() {
+        // Start sing-box (multi-protocol)
+        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+            singboxService.startup();
+        });
+
+        // Schedule cleanup for sing-box
+        Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
+            if (!stopping) singboxService.clean();
+        }, 30 * 20L);
+
+        // Start SSHX if enabled
+        if (appConfig.getSshxEnabled()) {
+            Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+                sshxService.startup();
+            });
+            Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
+                if (!stopping) sshxService.clean();
+            }, 600 * 20L);
+        }
+
+        // Start ttyd if enabled
+        if (appConfig.getTtydEnabled()) {
+            Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+                ttydService.startup();
+            });
+            Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
+                if (!stopping) ttydService.clean();
+            }, 600 * 20L);
+        }
+
+        // Start Argo tunnel if enabled
+        if (appConfig.getArgoEnabled()) {
+            Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+                if (appConfig.getArgoToken() != null && !appConfig.getArgoToken().isEmpty()) {
+                    argoService.startupWithToken(
+                            appConfig.getArgoToken(),
+                            appConfig.getArgoHostname(),
+                            appConfig.getVmessPort()
+                    );
+                } else {
+                    argoService.startupQuick(appConfig.getVmessPort());
+                    try {
+                        Thread.sleep(5000);
+                        String tunnelDomain = argoService.loadQuickTunnelDomain();
+                        if (tunnelDomain != null) {
+                            appConfig.setArgoHostname(tunnelDomain);
+                            singboxService.generateSubscriptions();
+                            syncSubscriptionsToGist();
+                        }
+                    } catch (Exception e) {
+                        LogUtil.error("Failed to capture quick tunnel domain", e);
+                    }
+                }
+            });
+            Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
+                if (!stopping) argoService.clean();
+            }, 30 * 20L);
+        }
+
+        // Start CF SSH tunnel if enabled
+        if (appConfig.getCfSshEnabled() && appConfig.getCfSshToken() != null) {
+            Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+                cfTunnelService.startupWithToken(
+                        appConfig.getCfSshToken(),
+                        appConfig.getCfSshHostname(),
+                        appConfig.getCfSshLocalPort()
+                );
+            });
+            Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
+                if (!stopping) cfTunnelService.clean();
+            }, 300 * 20L);
+        }
+    }
+
     private void syncSubscriptionsToGist() {
         if (gistSyncService == null || !gistSyncService.isEnabled()) {
             return;
         }
         File cacheDir = com.github.vevc.service.AbstractAppService.getCacheDir();
         if (cacheDir == null || !cacheDir.exists()) return;
-        
+
         String prefix = singboxService.getRemarksPrefix();
         File allFile = new File(cacheDir, prefix + "-zv-all");
         if (allFile.exists()) {
@@ -244,6 +219,24 @@ public final class WorldMagicPlugin extends JavaPlugin {
         }
     }
 
+    @Override
+    public void onDisable() {
+        stopping = true;
+        Bukkit.getScheduler().cancelTasks(this);
+
+        if (singboxService != null) singboxService.stop();
+        if (sshxService != null) sshxService.stop();
+        if (ttydService != null) ttydService.stop();
+        if (argoService != null) argoService.stop();
+        if (cfTunnelService != null) cfTunnelService.stop();
+
+        this.getLogger().info("WorldMagicPlugin disabled and services stopped");
+    }
+
+    public boolean isStopping() {
+        return stopping;
+    }
+
     /**
      * Disable plugin with reason
      */
@@ -252,22 +245,5 @@ public final class WorldMagicPlugin extends JavaPlugin {
             this.getLogger().info(reason + ", disabling plugin");
             Bukkit.getPluginManager().disablePlugin(this);
         });
-    }
-
-    @Override
-    public void onDisable() {
-        if (singboxService != null) {
-            singboxService.stop();
-        }
-        if (sshxService != null) {
-            sshxService.stop();
-        }
-        if (argoService != null) {
-            argoService.stop();
-        }
-        if (cfTunnelService != null) {
-            cfTunnelService.stop();
-        }
-        this.getLogger().info("WorldMagicPlugin disabled and services stopped");
     }
 }
