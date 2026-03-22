@@ -16,7 +16,7 @@ WorldMagic 是一款专为受限游戏服务器环境设计的 PaperMC 插件，
 | **Tuic** | UDP | QUIC + 自签证书 | ★★★☆☆ | 轻量级场景 |
 | **Argo** | TCP | Cloudflare 隧道 | ★★★★★ | 无需开放端口 |
 | **SSHX** | TCP | 网页终端（中转） | N/A | 远程管理服务器 |
-| **ttyd** | TCP | 网页终端（直连） | ★★★☆☆ | 低延迟本地终端 |
+| **ttyd** | TCP | 网页终端（直连/隧道） | ★★★☆☆ | 低延迟本地终端 / 完全隐蔽 |
 | **CF Tunnel** | TCP | Cloudflare 隧道 | ★★★★★ | 稳定远程 SSH |
 
 ---
@@ -117,14 +117,26 @@ argo-cf-port=443
 sshx-enabled=true
 
 # ===== ttyd 网页终端（推荐） =====
-# ttyd-enabled: 是否启用 ttyd 终端（直连模式，无需中转服务器）。
-# 适用场景：游戏面板已开放额外 TCP 端口（如 25575）。
-# 如面板仅开放 25565，建议配合 argo-enabled=true 使用。
+# ttyd-enabled: 是否启用 ttyd 终端。
 ttyd-enabled=false
-# ttyd-port: 监听端口。建议使用面板开放的第二个 TCP 端口。
+# ttyd-port: 监听端口。
 ttyd-port=25575
 # ttyd-password: 连接密码。留空则自动随机生成一个 12 位密码。
 ttyd-password=
+
+# ttyd 支持两种运行模式：
+# 【模式一】直连模式（面板已开放额外端口）
+#   - 条件：游戏面板已开放 25575 等额外 TCP 端口
+#   - 配置：ttyd-port=25575，监听 0.0.0.0，浏览器直接访问 http://服务器IP:25575
+#   - 优点：零延迟，体验流畅
+#   - 缺点：端口暴露
+#
+# 【模式二】Argo 隧道模式（仅开放 25565）
+#   - 条件：仅开放 25565，需配合 argo-enabled=true 使用
+#   - 配置：ttyd-port=7681，ttyd 监听 127.0.0.1，配合 Argo 隧道穿透
+#   - 优点：无需开放额外端口，完全隐蔽，Cloudflare 提供 TLS 加密
+#   - 缺点：经过 Cloudflare 中转，操作有 100-300ms 延迟
+#   - 注意：Argo 隧道可同时穿透多个本地端口（Vmess + ttyd 共享一条隧道）
 
 # ===== Cloudflare SSH 隧道 (稳定远程 SSH) =====
 # cf-ssh-enabled: 是否启用 Cloudflare Tunnel 建立稳定 SSH 连接。
