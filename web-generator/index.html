@@ -20,446 +20,481 @@
       --button-bg-light:#121a39;
       --body-bg: linear-gradient(180deg, var(--bg) 0%, #0e1530 100%);
     }
+    .light-mode {
+      --bg:#f5f6fa;
+      --card:#ffffff;
+      --ink:#1a202c;
+      --sub:#5a6578;
+      --line:#dde1ea;
+      --input-bg:#ffffff;
+      --button-bg-dark:#e8ebf0;
+      --button-bg-light:#f3f5f9;
+      --body-bg: var(--bg);
+    }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       background: var(--body-bg);
       color: var(--ink);
       font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial;
+      transition: background-color .3s, color .3s;
     }
     .wrap {
-      max-width: 1200px;
-      margin: 32px auto;
+      max-width: 1300px;
+      margin: 28px auto;
       padding: 0 20px;
     }
     header {
+      position: relative;
       text-align: center;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
-    header h1 {
-      font-size: 36px;
-      margin: 0 0 8px;
+    header h1 { font-size: 32px; margin: 0 0 6px; }
+    header p { margin: 0 0 4px; color: var(--sub); font-size: 14px; }
+    header a { color: var(--acc); text-decoration: none; }
+    header a:hover { text-decoration: underline; }
+    .theme-btn {
+      position: absolute;
+      top: 0; right: 0;
+      width: 36px; height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: var(--card);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
     }
-    header p {
-      margin: 0;
-      color: var(--sub);
+    .theme-btn svg { width: 18px; height: 18px; color: var(--sub); }
+    .light-mode .theme-btn .sun { display: none; }
+    .dark-mode .theme-btn .moon { display: none; }
+
+    .platform-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+    .platform-tab {
+      padding: 10px 20px;
+      border: 1px solid transparent;
+      border-bottom: none;
+      border-radius: 10px 10px 0 0;
+      cursor: pointer;
       font-size: 14px;
+      font-weight: 600;
+      color: var(--sub);
+      background: transparent;
     }
-    .grid {
+    .platform-tab:hover { color: var(--ink); }
+    .platform-tab.active {
+      color: var(--acc);
+      border-color: var(--line);
+      border-bottom-color: var(--bg);
+      background: var(--card);
+    }
+    .light-mode .platform-tab.active { border-bottom-color: var(--card); }
+
+    .main-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 20px;
+      gap: 16px;
     }
-    @media (max-width: 900px) {
-      .grid { grid-template-columns: 1fr; }
-    }
+    @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+
     .card {
-      background: rgba(255, 255, 255, .04);
-      backdrop-filter: blur(6px);
+      background: var(--card);
       border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 20px;
+      border-radius: 14px;
+      padding: 18px;
     }
     .card h2 {
-      margin: 0 0 16px;
-      font-size: 18px;
-      color: var(--ink);
+      margin: 0 0 14px;
+      font-size: 16px;
       border-bottom: 1px solid var(--line);
       padding-bottom: 8px;
     }
-    .card h3 {
-      margin: 12px 0 8px;
-      font-size: 14px;
+    .card h3 { margin: 0 0 10px; font-size: 13px; color: var(--sub); font-weight: 500; }
+    .section-label {
+      font-size: 12px;
       color: var(--sub);
+      margin: 14px 0 8px;
+      border-bottom: 1px dotted var(--line);
+      padding-bottom: 4px;
+      letter-spacing: .5px;
     }
-    .protocol-grid {
+    .section-label:first-child { margin-top: 0; }
+
+    .proto-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px 16px;
+      gap: 6px 12px;
     }
-    @media (max-width: 600px) {
-      .protocol-grid { grid-template-columns: 1fr; }
-    }
-    .protocol-item {
+    @media (max-width: 600px) { .proto-grid { grid-template-columns: 1fr; } }
+    .proto-item {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
+      gap: 6px;
+      padding: 7px 10px;
       border: 1px solid var(--line);
-      border-radius: 10px;
+      border-radius: 9px;
       background: rgba(255,255,255,.02);
-      transition: border-color .2s;
+      transition: border-color .2s, background .2s;
     }
-    .protocol-item.active {
+    .proto-item.active {
       border-color: var(--acc);
-      background: rgba(79,124,255,.08);
+      background: rgba(79,124,255,.1);
     }
-    .protocol-item label {
+    .proto-item label {
       flex: 1;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 13px;
       display: flex;
       align-items: center;
       gap: 6px;
     }
-    .protocol-item .port-input {
-      width: 80px;
-      padding: 4px 8px;
+    .proto-item .port-input {
+      width: 72px;
+      padding: 4px 6px;
       border: 1px solid var(--line);
       border-radius: 6px;
       background: var(--input-bg);
       color: var(--ink);
-      font-size: 13px;
+      font-size: 12px;
       text-align: center;
-    }
-    .protocol-item .port-input:focus {
-      border-color: var(--acc);
       outline: none;
     }
+    .proto-item .port-input:focus { border-color: var(--acc); }
+    .pill {
+      display: inline-block;
+      font-size: 10px;
+      padding: 1px 5px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--sub);
+      white-space: nowrap;
+    }
+
     .row {
       display: grid;
-      grid-template-columns: 160px 1fr;
-      gap: 12px;
+      grid-template-columns: 150px 1fr;
+      gap: 10px;
       align-items: center;
-      margin: 10px 0;
+      margin: 8px 0;
     }
-    @media (max-width: 600px) {
-      .row { grid-template-columns: 1fr; gap: 4px; }
-    }
-    label {
-      font-size: 14px;
-      color: var(--sub);
-    }
-    input[type="text"], input[type="number"] {
+    @media (max-width: 600px) { .row { grid-template-columns: 1fr; gap: 4px; } }
+    .row label { font-size: 13px; color: var(--sub); white-space: nowrap; }
+    .row label .pill { margin-left: 4px; }
+    input[type="text"], input[type="number"], select {
       width: 100%;
-      padding: 10px 12px;
+      padding: 9px 12px;
       border: 1px solid var(--line);
-      border-radius: 10px;
+      border-radius: 9px;
       background: var(--input-bg);
       color: var(--ink);
-      font-size: 14px;
+      font-size: 13px;
       outline: none;
     }
-    input:focus { border-color: var(--acc); }
-    select {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      background: var(--input-bg);
-      color: var(--ink);
-      font-size: 14px;
-      outline: none;
-    }
-    .switch {
-      position: relative;
-      width: 44px;
-      height: 26px;
-      background: #263255;
-      border-radius: 99px;
+    input:focus, select:focus { border-color: var(--acc); }
+    input:disabled, select:disabled { opacity: .45; }
+    .input-with-btn { display: flex; gap: 6px; align-items: center; }
+    .input-with-btn input { flex: 1; }
+
+    .btn {
       cursor: pointer;
-      transition: .2s;
-      flex-shrink: 0;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--button-bg-dark), var(--button-bg-light));
+      color: var(--ink);
+      padding: 8px 12px;
+      border-radius: 9px;
+      font-size: 13px;
+      white-space: nowrap;
     }
-    .switch.on { background: var(--acc); }
-    .switch::after {
-      content: "";
-      position: absolute;
-      inset: 3px auto 3px 3px;
-      width: 20px;
-      border-radius: 50%;
-      background: white;
-      transition: .2s;
+    .btn:hover { opacity: .85; }
+    .btn-sm { padding: 6px 10px; font-size: 12px; }
+    .btn-primary {
+      background: linear-gradient(180deg, #4f7cff, #385fdf);
+      border-color: #476de2;
+      color: #fff;
     }
-    .switch.on::after { left: auto; right: 3px; }
-    .section-label {
-      font-size: 12px;
-      color: var(--sub);
-      margin: 16px 0 8px;
-      border-bottom: 1px dotted var(--line);
-      padding-bottom: 4px;
-    }
-    .output-section {
-      grid-column: 1 / -1;
-    }
-    .output-section .card {
-      border-color: #3752a6;
-    }
+
+    .gist-row { display: none; }
+    .gist-row.show { display: grid; }
+
+    .output-section { grid-column: 1 / -1; }
+    .output-section .card { border-color: #3752a6; border-style: dashed; }
     textarea {
       width: 100%;
-      min-height: 120px;
+      min-height: 100px;
       background: #0a1128;
       color: #dbeafe;
       border: 1px dashed #3752a6;
-      border-radius: 12px;
+      border-radius: 10px;
       padding: 12px;
       white-space: pre;
       resize: vertical;
       font-size: 13px;
       font-family: monospace;
     }
-    .actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    button {
-      cursor: pointer;
-      border: 1px solid var(--line);
-      background: linear-gradient(180deg, var(--button-bg-dark), var(--button-bg-light));
-      color: var(--ink);
-      padding: 10px 16px;
-      border-radius: 10px;
-      font-size: 14px;
-      transition: background .2s;
-    }
-    button.primary {
-      background: linear-gradient(180deg, #4f7cff, #385fdf);
-      border-color: #476de2;
-      color: #fff;
-    }
-    button:hover { opacity: .85; }
-    .tip {
-      font-size: 12px;
-      color: var(--sub);
-      margin-top: 8px;
-      line-height: 1.5;
-    }
-    .tip code {
-      background: rgba(79,124,255,.15);
-      padding: 2px 6px;
-      border-radius: 4px;
-      color: var(--acc);
-    }
+    .light-mode textarea { background: #f0f4f9; color: #1a202c; border-color: #929faf; }
+    .actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .tip { font-size: 12px; color: var(--sub); margin-top: 8px; line-height: 1.6; }
+    .tip code { background: rgba(79,124,255,.15); padding: 1px 5px; border-radius: 4px; color: var(--acc); }
+    .platform-panel { display: none; }
+    .platform-panel.active { display: block; }
   </style>
 </head>
 <body>
 <div class="wrap">
   <header>
+    <button class="theme-btn" id="themeBtn" title="切换主题">
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+    </button>
     <h1>WorldMagic 配置生成器</h1>
     <p>勾选协议 → 填写端口 → 复制命令 → 粘贴到 application.properties → 重启服务器</p>
+    <p><a href="https://github.com/zv201413/PaperMC_WorldMagic" target="_blank">📦 GitHub：zv201413/PaperMC_WorldMagic</a></p>
   </header>
 
-  <div class="grid">
-    <!-- 左栏：协议选择 -->
-    <section class="card">
-      <h2>协议与端口</h2>
+  <div class="platform-tabs">
+    <button class="platform-tab active" data-platform="paper">📦 PaperMC（sing-box 多协议）</button>
+    <button class="platform-tab" data-platform="fabric">🧶 Fabric（sing-box 精简）</button>
+  </div>
 
-      <div class="section-label">TCP 协议（直连 / Argo 隧道）</div>
-      <div class="protocol-grid">
-        <div class="protocol-item" id="item-vmess">
-          <label><input type="checkbox" id="proto-vmess"> Vmess-WS</label>
-          <input type="text" class="port-input" id="port-vmess" placeholder="25566" value="25566">
+  <div class="platform-panel active" id="panel-paper">
+    <div class="main-grid">
+      <section class="card">
+        <h2>选择协议与端口</h2>
+        <div class="section-label">TCP 协议</div>
+        <div class="proto-grid">
+          <div class="proto-item" id="item-vmess"><label><input type="checkbox" id="cb-vmess"> Vmess-WS</label><input type="text" class="port-input" id="pt-vmess" placeholder="25566" value="25566"></div>
+          <div class="proto-item" id="item-vless"><label><input type="checkbox" id="cb-vless"> VLESS-WS</label><input type="text" class="port-input" id="pt-vless" placeholder="25568" value="25568"></div>
+          <div class="proto-item" id="item-anpt"><label><input type="checkbox" id="cb-anpt"> AnyTLS</label><input type="text" class="port-input" id="pt-anpt" placeholder="8444" value="8444"></div>
+          <div class="proto-item" id="item-naive"><label><input type="checkbox" id="cb-naive"> NaiveProxy</label><input type="text" class="port-input" id="pt-naive" placeholder="25569" value="25569"></div>
         </div>
-        <div class="protocol-item" id="item-vless">
-          <label><input type="checkbox" id="proto-vless"> VLESS-WS</label>
-          <input type="text" class="port-input" id="port-vless" placeholder="25568" value="25568">
+        <div class="section-label">UDP 协议</div>
+        <div class="proto-grid">
+          <div class="proto-item" id="item-hypt"><label><input type="checkbox" id="cb-hypt"> Hysteria2</label><input type="text" class="port-input" id="pt-hypt" placeholder="25565" value="25565"></div>
+          <div class="proto-item" id="item-tupt"><label><input type="checkbox" id="cb-tupt"> Tuic</label><input type="text" class="port-input" id="pt-tupt" placeholder="25570" value="25570"></div>
         </div>
-        <div class="protocol-item" id="item-anpt">
-          <label><input type="checkbox" id="proto-anpt"> AnyTLS</label>
-          <input type="text" class="port-input" id="port-anpt" placeholder="25567" value="25567">
+        <div class="section-label">网页终端</div>
+        <div class="proto-grid">
+          <div class="proto-item" id="item-sshx"><label><input type="checkbox" id="cb-sshx"> SSHX</label><span style="font-size:11px;color:var(--sub)">sshx.io 中转</span></div>
+          <div class="proto-item" id="item-ttyd"><label><input type="checkbox" id="cb-ttyd"> ttyd</label><input type="text" class="port-input" id="pt-ttyd" placeholder="25575" value="25575"></div>
         </div>
-        <div class="protocol-item" id="item-naive">
-          <label><input type="checkbox" id="proto-naive"> NaiveProxy</label>
-          <input type="text" class="port-input" id="port-naive" placeholder="25569" value="25569">
-        </div>
-      </div>
+      </section>
 
-      <div class="section-label">UDP 协议</div>
-      <div class="protocol-grid">
-        <div class="protocol-item" id="item-hypt">
-          <label><input type="checkbox" id="proto-hypt"> Hysteria2</label>
-          <input type="text" class="port-input" id="port-hypt" placeholder="25565" value="25565">
+      <section class="card">
+        <h2>基础配置</h2>
+        <div class="row"><label>服务器 IP / 域名</label><input type="text" id="p-domain" placeholder="必填，如 1.2.3.4 或 example.com"></div>
+        <div class="row">
+          <label>UUID</label>
+          <div class="input-with-btn">
+            <input type="text" id="p-uuid" placeholder="留空则自动生成">
+            <button class="btn btn-sm" id="genUuidBtn">生成</button>
+          </div>
         </div>
-        <div class="protocol-item" id="item-tupt">
-          <label><input type="checkbox" id="proto-tupt"> Tuic</label>
-          <input type="text" class="port-input" id="port-tupt" placeholder="25570" value="25570">
+        <div class="row"><label>节点名称前缀</label><input type="text" id="p-name" placeholder="如 JP、US" value="JP"></div>
+
+        <div class="section-label">Argo 隧道（穿透 25565）</div>
+        <div class="row"><label>隧道协议</label>
+          <select id="p-argo">
+            <option value="">关闭（直连模式）</option>
+            <option value="vmess-ws">Vmess-WS + 隧道</option>
+            <option value="vless-ws">VLESS-WS + 隧道</option>
+          </select>
         </div>
-      </div>
+        <div class="row" id="p-argo-domain-row" style="display:none"><label>固定域名</label><input type="text" id="p-argo-domain" placeholder="留空则临时隧道"></div>
+        <div class="row" id="p-argo-token-row" style="display:none"><label>Argo Token</label><input type="text" id="p-argo-token" placeholder="留空则临时隧道"></div>
+        <div class="row"><label>优选 IP</label><input type="text" id="p-argo-ip" placeholder="如 www.visa.com.sg" value="www.visa.com.sg"></div>
 
-      <div class="section-label">网页终端</div>
-      <div class="protocol-grid">
-        <div class="protocol-item" id="item-sshx">
-          <label><input type="checkbox" id="proto-sshx" checked> SSHX</label>
-          <span style="font-size:12px;color:var(--sub)">sshx.io 中转</span>
+        <div class="section-label">终端 / 认证</div>
+        <div class="row"><label>ttyd 密码</label><input type="text" id="p-ttyd-pass" placeholder="留空则自动生成"></div>
+        <div class="row"><label>NaiveProxy 用户</label><input type="text" id="p-naive-user" value="admin"></div>
+        <div class="row"><label>NaiveProxy 密码</label><input type="text" id="p-naive-pass" placeholder="留空则自动生成"></div>
+
+        <div class="section-label">GitHub Gist 同步</div>
+        <div class="gist-row" id="p-gist-row"><label>Gist ID <span class="pill">gist-id</span></label><input type="text" id="p-gist-id" placeholder="留空则不启用"></div>
+        <div class="gist-row show" id="p-gist-row2"><label>GitHub Token <span class="pill">gh-token</span></label><input type="text" id="p-gist-token" placeholder="留空则不启用"></div>
+        <p class="tip" id="p-gist-preview" style="display:none;color:var(--acc)"></p>
+      </section>
+
+      <section class="card output-section">
+        <h2>一键配置命令</h2>
+        <p class="tip">复制下方命令，<strong>整体粘贴</strong>到 <code>application.properties</code> 文件第一行，重启服务器即可。</p>
+        <textarea id="p-output" spellcheck="false" readonly></textarea>
+        <div class="actions">
+          <button class="btn btn-primary" id="p-copy">复制命令</button>
+          <button class="btn" id="p-reset">重置</button>
         </div>
-        <div class="protocol-item" id="item-ttyd">
-          <label><input type="checkbox" id="proto-ttyd"> ttyd</label>
-          <input type="text" class="port-input" id="port-ttyd" placeholder="25575" value="25575">
+      </section>
+    </div>
+  </div>
+
+  <div class="platform-panel" id="panel-fabric">
+    <div class="main-grid">
+      <section class="card">
+        <h2>选择协议与端口</h2>
+        <p class="tip" style="margin-top:0">Fabric 平台使用精简版 sing-box，支持以下协议：</p>
+        <div class="section-label">TCP 协议</div>
+        <div class="proto-grid">
+          <div class="proto-item" id="fb-item-vless"><label><input type="checkbox" id="fb-cb-vless"> VLESS-WS</label><input type="text" class="port-input" id="fb-pt-vless" placeholder="25568" value="25568"></div>
+          <div class="proto-item" id="fb-item-naive"><label><input type="checkbox" id="fb-cb-naive"> NaiveProxy</label><input type="text" class="port-input" id="fb-pt-naive" placeholder="25569" value="25569"></div>
+          <div class="proto-item" id="fb-item-anpt"><label><input type="checkbox" id="fb-cb-anpt"> AnyTLS</label><input type="text" class="port-input" id="fb-pt-anpt" placeholder="8444" value="8444"></div>
+          <div class="proto-item" id="fb-item-s5"><label><input type="checkbox" id="fb-cb-s5"> Socks5</label><input type="text" class="port-input" id="fb-pt-s5" placeholder="25566" value="25566"></div>
         </div>
-      </div>
-    </section>
+        <div class="section-label">UDP 协议</div>
+        <div class="proto-grid">
+          <div class="proto-item" id="fb-item-hypt"><label><input type="checkbox" id="fb-cb-hypt"> Hysteria2</label><input type="text" class="port-input" id="fb-pt-hypt" placeholder="25565" value="25565"></div>
+          <div class="proto-item" id="fb-item-tupt"><label><input type="checkbox" id="fb-cb-tupt"> Tuic</label><input type="text" class="port-input" id="fb-pt-tupt" placeholder="25570" value="25570"></div>
+        </div>
+        <div class="section-label">Argo 隧道（穿透 25565）</div>
+        <div class="proto-grid">
+          <div class="proto-item" id="fb-item-argo"><label><input type="checkbox" id="fb-cb-argo"> 启用 Argo</label><input type="text" class="port-input" id="fb-pt-argo" placeholder="固定域名" value=""></div>
+        </div>
+        <div class="row" style="margin-top:4px"><label>Argo Token</label><input type="text" id="fb-argo-token" placeholder="Cloudflare Zero Trust Token"></div>
+      </section>
 
-    <!-- 右栏：基础配置 + Argo -->
-    <section class="card">
-      <h2>基础配置</h2>
-      <div class="row">
-        <label>服务器 IP / 域名</label>
-        <input type="text" id="domain" placeholder="必填，如 1.2.3.4 或 example.com">
-      </div>
-      <div class="row">
-        <label>UUID（留空随机）</label>
-        <input type="text" id="uuid" placeholder="留空则自动生成">
-      </div>
-      <div class="row">
-        <label>节点名称前缀</label>
-        <input type="text" id="name" placeholder="如 JP、US、HK" value="JP">
-      </div>
-      <div class="row">
-        <label>启用 Argo 隧道</label>
-        <select id="argo">
-          <option value="">关闭（直连模式）</option>
-          <option value="vmess-ws">Vmess-WS + 隧道</option>
-          <option value="vless-ws">VLESS-WS + 隧道</option>
-        </select>
-      </div>
-      <div class="row" id="argo-domain-row" style="display:none">
-        <label>Argo 固定域名</label>
-        <input type="text" id="argo-domain" placeholder="留空则临时隧道">
-      </div>
-      <div class="row" id="argo-token-row" style="display:none">
-        <label>Argo Token</label>
-        <input type="text" id="argo-token" placeholder="留空则临时隧道">
-      </div>
-      <div class="row">
-        <label>Argo 优选 IP</label>
-        <input type="text" id="argo-ip" placeholder="如 www.visa.com.sg" value="www.visa.com.sg">
-      </div>
+      <section class="card">
+        <h2>基础配置</h2>
+        <div class="row"><label>服务器 IP / 域名</label><input type="text" id="f-domain" placeholder="必填，如 1.2.3.4 或 example.com"></div>
+        <div class="row">
+          <label>UUID</label>
+          <div class="input-with-btn">
+            <input type="text" id="f-uuid" placeholder="留空则自动生成">
+            <button class="btn btn-sm" id="f-genUuidBtn">生成</button>
+          </div>
+        </div>
+        <div class="row"><label>节点名称前缀</label><input type="text" id="f-name" placeholder="如 JP、US" value="JP"></div>
 
-      <h2 style="margin-top:20px">终端配置</h2>
-      <div class="row">
-        <label>ttyd 密码（留空随机）</label>
-        <input type="text" id="ttyd-pass" placeholder="留空则自动生成">
-      </div>
-      <div class="row">
-        <label>NaiveProxy 用户名</label>
-        <input type="text" id="naive-user" placeholder="默认 admin" value="admin">
-      </div>
-      <div class="row">
-        <label>NaiveProxy 密码（留空随机）</label>
-        <input type="text" id="naive-pass" placeholder="留空则自动生成">
-      </div>
+        <div class="section-label">优选节点</div>
+        <div class="row"><label>优选 IP</label><input type="text" id="f-cfip" placeholder="如 104.17.100.191" value="104.17.100.191"></div>
+        <div class="row"><label>优选端口</label><input type="text" id="f-cfport" placeholder="默认 443" value="443"></div>
 
-      <h2 style="margin-top:20px">GitHub Gist 同步（可选）</h2>
-      <div class="row">
-        <label>Gist ID</label>
-        <input type="text" id="gist-id" placeholder="留空则不启用">
-      </div>
-      <div class="row">
-        <label>GitHub Token</label>
-        <input type="text" id="gh-token" placeholder="留空则不启用">
-      </div>
-    </section>
+        <div class="section-label">Telegram 推送（可选）</div>
+        <div class="row"><label>Chat ID</label><input type="text" id="f-chat-id" placeholder="留空则不推送"></div>
+        <div class="row"><label>Bot Token</label><input type="text" id="f-bot-token" placeholder="留空则不推送"></div>
 
-    <!-- 输出 -->
-    <section class="card output-section">
-      <h2>一键配置命令</h2>
-      <p class="tip">将下方生成的命令，复制后 <strong>整体粘贴</strong> 到 <code>application.properties</code> 文件中第一行即可。服务器重启后插件自动读取所有配置。</p>
-      <textarea id="output" spellcheck="false" readonly></textarea>
-      <div class="actions">
-        <button class="primary" id="copy">复制命令</button>
-        <button id="reset">重置</button>
-      </div>
-      <p class="tip" style="margin-top:12px">
-        <strong>生成命令格式说明：</strong><br>
-        <code>install=</code> 开头的配置行，插件启动时会解析并覆盖 <code>application.properties</code> 中的对应字段。<br>
-        支持同时启用多个协议，Argo 隧道可与 Vmess-WS 或 VLESS-WS 组合（共用一条隧道）。<br>
-        ttyd 直连模式：需面板开放对应 TCP 端口；隧道模式：需先启用 Argo。
-      </p>
-    </section>
+        <div class="section-label">GitHub Gist 同步</div>
+        <div class="gist-row" id="f-gist-row"><label>Gist ID</label><input type="text" id="f-gist-id" placeholder="留空则不启用"></div>
+        <div class="gist-row show" id="f-gist-row2"><label>GitHub Token</label><input type="text" id="f-gist-token" placeholder="留空则不启用"></div>
+        <p class="tip" id="f-gist-preview" style="display:none;color:var(--acc)"></p>
+      </section>
+
+      <section class="card output-section">
+        <h2>一键配置命令</h2>
+        <p class="tip">复制下方命令，<strong>整体粘贴</strong>到 <code>application.properties</code> 文件第一行，重启服务器即可。</p>
+        <textarea id="f-output" spellcheck="false" readonly></textarea>
+        <div class="actions">
+          <button class="btn btn-primary" id="f-copy">复制命令</button>
+          <button class="btn" id="f-reset">重置</button>
+        </div>
+      </section>
+    </div>
   </div>
 </div>
 
 <script>
 (function(){
-  const $ = id => document.getElementById(id);
+  var themeBtn = document.getElementById('themeBtn');
+  var savedTheme = localStorage.getItem('wmg-theme') || 'dark';
+  if (savedTheme === 'light') document.body.classList.add('light-mode');
+  themeBtn.addEventListener('click', function() {
+    document.body.classList.toggle('light-mode');
+    localStorage.setItem('wmg-theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+  });
 
-  const protos = [
-    { cb:'proto-vmess', pt:'port-vmess', item:'item-vmess' },
-    { cb:'proto-vless', pt:'port-vless', item:'item-vless' },
-    { cb:'proto-anpt',  pt:'port-anpt',  item:'item-anpt'  },
-    { cb:'proto-naive', pt:'port-naive', item:'item-naive' },
-    { cb:'proto-hypt',  pt:'port-hypt',  item:'item-hypt'  },
-    { cb:'proto-tupt',  pt:'port-tupt',  item:'item-tupt'  },
-    { cb:'proto-sshx',  pt:null,         item:'item-sshx'  },
-    { cb:'proto-ttyd',  pt:'port-ttyd',  item:'item-ttyd'  },
+  function genUuid() { return crypto.randomUUID(); }
+  function $(id) { return document.getElementById(id); }
+  function kv(k, v) {
+    if (v === '' || v == null) return '';
+    if (/[^\w\-\._\/@:]/.test(v)) return k + '="' + v.replace(/"/g, '\\"') + '"';
+    return k + '="' + v + '"';
+  }
+  function showToast(msg) {
+    var d = document.createElement('div');
+    d.textContent = msg;
+    Object.assign(d.style, {
+      position:'fixed', left:'50%', top:'18px', transform:'translateX(-50%)',
+      padding:'9px 14px', background:'rgba(0,0,0,.65)', color:'#fff',
+      border:'1px solid #334', borderRadius:'10px', zIndex:9999, fontSize:'13px'
+    });
+    document.body.appendChild(d);
+    setTimeout(function() { d.remove(); }, 1500);
+  }
+
+  $('genUuidBtn').addEventListener('click', function() {
+    $('p-uuid').value = genUuid();
+    renderPaper();
+    showToast('UUID 已生成');
+  });
+  $('f-genUuidBtn').addEventListener('click', function() {
+    $('f-uuid').value = genUuid();
+    renderFabric();
+    showToast('UUID 已生成');
+  });
+
+  document.querySelectorAll('.platform-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.platform-tab').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelectorAll('.platform-panel').forEach(function(p) { p.classList.remove('active'); });
+      tab.classList.add('active');
+      $('panel-' + tab.dataset.platform).classList.add('active');
+    });
+  });
+
+  var paperProtos = [
+    {cb:'cb-vmess',pt:'pt-vmess',item:'item-vmess'},
+    {cb:'cb-vless',pt:'pt-vless',item:'item-vless'},
+    {cb:'cb-anpt', pt:'pt-anpt', item:'item-anpt' },
+    {cb:'cb-naive',pt:'pt-naive',item:'item-naive'},
+    {cb:'cb-hypt', pt:'pt-hypt', item:'item-hypt' },
+    {cb:'cb-tupt', pt:'pt-tupt', item:'item-tupt' },
+    {cb:'cb-sshx', pt:null,     item:'item-sshx' },
+    {cb:'cb-ttyd', pt:'pt-ttyd',item:'item-ttyd'},
   ];
 
-  protos.forEach(p => {
-    const cb = $(p.cb);
-    const item = $(p.item);
-    const pt = p.pt ? $(p.pt) : null;
-
-    const sync = () => {
+  paperProtos.forEach(function(p) {
+    var cb = $(p.cb), pt = p.pt ? $(p.pt) : null, item = $(p.item);
+    var sync = function() {
       item.classList.toggle('active', cb.checked);
       if (pt && !cb.checked) pt.value = '';
+      renderPaper();
     };
-
     cb.addEventListener('change', sync);
-    if (pt) {
-      pt.addEventListener('input', () => { cb.checked = true; sync(); });
-    }
+    if (pt) pt.addEventListener('input', function() { if (pt.value.trim()) cb.checked = true; sync(); });
     sync();
   });
 
-  // Argo toggle
-  $('argo').addEventListener('change', function() {
-    const show = this.value !== '';
-    $('argo-domain-row').style.display = show ? '' : 'none';
-    $('argo-token-row').style.display = show ? '' : 'none';
-    if (!show) {
-      $('argo-domain').value = '';
-      $('argo-token').value = '';
-    }
-    render();
+  $('p-argo').addEventListener('change', function() {
+    var v = this.value;
+    $('p-argo-domain-row').style.display = v ? '' : 'none';
+    $('p-argo-token-row').style.display = 'none';
+    if (v === 'vmess-ws') { $('cb-vmess').checked = true; $('item-vmess').classList.add('active'); }
+    if (v === 'vless-ws') { $('cb-vless').checked = true; $('item-vless').classList.add('active'); }
+    renderPaper();
   });
 
-  // UUID
-  $('uuid').addEventListener('input', render);
-  $('domain').addEventListener('input', render);
-  $('name').addEventListener('input', render);
-  $('argo-ip').addEventListener('input', render);
-  $('argo-domain').addEventListener('input', render);
-  $('argo-token').addEventListener('input', render);
-  $('ttyd-pass').addEventListener('input', render);
-  $('naive-user').addEventListener('input', render);
-  $('naive-pass').addEventListener('input', render);
-  $('gist-id').addEventListener('input', render);
-  $('gh-token').addEventListener('input', render);
-
-  $('copy').addEventListener('click', async () => {
-    const t = $('output');
-    t.select();
-    try { await navigator.clipboard.writeText(t.value); alert('已复制到剪贴板'); }
-    catch(e) { document.execCommand('copy'); alert('已复制'); }
+  $('p-argo-domain').addEventListener('input', function() {
+    $('p-argo-token-row').style.display = this.value.trim() ? '' : 'none';
+    renderPaper();
   });
 
-  $('reset').addEventListener('click', () => location.reload());
+  ['p-domain','p-uuid','p-name','p-argo-ip','p-argo-domain','p-argo-token','p-ttyd-pass','p-naive-user','p-naive-pass','p-gist-id','p-gist-token'].forEach(function(id) {
+    $(id).addEventListener('input', renderPaper);
+  });
 
-  function kv(key, val) {
-    if (val === '' || val === null || val === undefined) return '';
-    if (/[^\w\-\._\/@:]/.test(val)) {
-      return `${key}="${val.replace(/"/g, '\\"')}"`;
-    }
-    return `${key}="${val}"`;
-  }
-
-  function render() {
-    const parts = [];
-
-    const domain = $('domain').value.trim();
+  function renderPaper() {
+    var parts = [];
+    var domain = $('p-domain').value.trim();
     if (domain) parts.push(kv('domain', domain));
-
-    const uuid = $('uuid').value.trim();
+    var uuid = $('p-uuid').value.trim();
     if (uuid) parts.push(kv('uuid', uuid));
-
-    const name = $('name').value.trim();
+    var name = $('p-name').value.trim();
     if (name) parts.push(kv('name', name));
 
-    const argo = $('argo').value.trim();
-    const argoDomain = $('argo-domain').value.trim();
-    const argoToken = $('argo-token').value.trim();
-    const argoIp = $('argo-ip').value.trim();
+    var argo = $('p-argo').value.trim();
+    var argoDomain = $('p-argo-domain').value.trim();
+    var argoToken = $('p-argo-token').value.trim();
+    var argoIp = $('p-argo-ip').value.trim();
 
     if (argo) {
       parts.push(kv('argo', argo));
@@ -468,34 +503,155 @@
       if (argoIp && argoIp !== 'www.visa.com.sg') parts.push(kv('argo-ip', argoIp));
     }
 
-    protos.forEach(p => {
-      const cb = $(p.cb);
+    paperProtos.forEach(function(p) {
+      var cb = $(p.cb);
       if (!cb.checked) return;
-      const pt = p.pt ? $(p.pt) : null;
-      const port = pt ? pt.value.trim() : '';
-      const key = p.cb.replace('proto-', '');
+      var pt = p.pt ? $(p.pt) : null;
+      var port = pt ? pt.value.trim() : '';
+      var key = p.cb.replace('cb-', '');
       parts.push(kv(key, port));
     });
 
-    const ttydPass = $('ttyd-pass').value.trim();
+    var ttydPass = $('p-ttyd-pass').value.trim();
     if (ttydPass) parts.push(kv('ttyd-pass', ttydPass));
-
-    const naiveUser = $('naive-user').value.trim();
+    var naiveUser = $('p-naive-user').value.trim();
     if (naiveUser && naiveUser !== 'admin') parts.push(kv('naive-user', naiveUser));
-
-    const naivePass = $('naive-pass').value.trim();
+    var naivePass = $('p-naive-pass').value.trim();
     if (naivePass) parts.push(kv('naive-pass', naivePass));
 
-    const gistId = $('gist-id').value.trim();
-    const ghToken = $('gh-token').value.trim();
+    var gistId = $('p-gist-id').value.trim();
+    var ghToken = $('p-gist-token').value.trim();
     if (gistId) parts.push(kv('gist-id', gistId));
     if (ghToken) parts.push(kv('gh-token', ghToken));
 
-    const line = 'install=' + parts.join(' ');
-    $('output').value = line;
+    if (name) {
+      parts.push(kv('gist-sshx-file', 'sshx_' + name + '.txt'));
+      parts.push(kv('gist-sub-file', 'sub_' + name + '.txt'));
+      parts.push(kv('gist-ttyd-file', 'ttyd_' + name + '.txt'));
+      var preview = $('p-gist-preview');
+      preview.textContent = '将自动生成：sshx_' + name + '.txt | sub_' + name + '.txt | ttyd_' + name + '.txt';
+      preview.style.display = '';
+      $('p-gist-row').classList.add('show');
+      $('p-gist-row2').classList.add('show');
+    } else {
+      $('p-gist-preview').style.display = 'none';
+    }
+
+    $('p-output').value = 'install=' + parts.join(' ');
   }
 
-  render();
+  $('p-copy').addEventListener('click', async function() {
+    var t = $('p-output');
+    t.select(); t.setSelectionRange(0, 99999);
+    try { await navigator.clipboard.writeText(t.value); showToast('已复制到剪贴板'); }
+    catch(e) { document.execCommand('copy'); showToast('已复制'); }
+  });
+  $('p-reset').addEventListener('click', function() { location.reload(); });
+
+  var fbProtos = [
+    {cb:'fb-cb-vless',pt:'fb-pt-vless',item:'fb-item-vless'},
+    {cb:'fb-cb-naive',pt:'fb-pt-naive',item:'fb-item-naive'},
+    {cb:'fb-cb-anpt', pt:'fb-pt-anpt', item:'fb-item-anpt'},
+    {cb:'fb-cb-s5',   pt:'fb-pt-s5',   item:'fb-item-s5'},
+    {cb:'fb-cb-hypt', pt:'fb-pt-hypt', item:'fb-item-hypt'},
+    {cb:'fb-cb-tupt', pt:'fb-pt-tupt', item:'fb-item-tupt'},
+    {cb:'fb-cb-argo', pt:'fb-pt-argo', item:'fb-item-argo'},
+  ];
+
+  fbProtos.forEach(function(p) {
+    var cb = $(p.cb), pt = $(p.pt), item = $(p.item);
+    var sync = function() {
+      item.classList.toggle('active', cb.checked);
+      if (!cb.checked) pt.value = '';
+      renderFabric();
+    };
+    cb.addEventListener('change', sync);
+    pt.addEventListener('input', function() { if (pt.value.trim()) cb.checked = true; sync(); });
+    sync();
+  });
+
+  $('fb-cb-argo').addEventListener('change', function() {
+    if (this.checked) { $('fb-cb-vless').checked = true; $('fb-item-vless').classList.add('active'); }
+    renderFabric();
+  });
+  $('fb-pt-argo').addEventListener('input', function() {
+    $('fb-argo-token').parentElement.style.display = this.value.trim() ? '' : 'none';
+    renderFabric();
+  });
+
+  ['f-domain','f-uuid','f-name','f-cfip','f-cfport','f-argo-token','f-chat-id','f-bot-token','f-gist-id','f-gist-token'].forEach(function(id) {
+    $(id).addEventListener('input', renderFabric);
+  });
+
+  function renderFabric() {
+    var parts = [];
+    var domain = $('f-domain').value.trim();
+    if (domain) parts.push(kv('domain', domain));
+    var uuid = $('f-uuid').value.trim();
+    if (uuid) parts.push(kv('uuid', uuid));
+    var name = $('f-name').value.trim();
+    if (name) parts.push(kv('name', name));
+
+    parts.push(kv('maohi-enabled', 'true'));
+
+    fbProtos.forEach(function(p) {
+      var cb = $(p.cb);
+      if (!cb.checked) return;
+      var pt = $(p.pt);
+      var port = pt ? pt.value.trim() : '';
+      var key = p.cb.replace('fb-cb-', '');
+      var maohiKey = key === 's5' ? 'maohi-s5-port'
+        : key === 'argo' ? 'maohi-argo-domain'
+        : key === 'vless' ? 'maohi-vless-port'
+        : key === 'hypt' ? 'maohi-hy2-port'
+        : key === 'naive' ? 'maohi-naive-port'
+        : key === 'anpt' ? 'maohi-anytls-port'
+        : key === 'tupt' ? 'maohi-tuic-port'
+        : key;
+      parts.push(kv(maohiKey, port));
+    });
+
+    var argoToken = $('f-argo-token').value.trim();
+    if (argoToken) parts.push(kv('maohi-argo-auth', argoToken));
+
+    var cfip = $('f-cfip').value.trim();
+    if (cfip && cfip !== '104.17.100.191') parts.push(kv('maohi-cfip', cfip));
+    var cfport = $('f-cfport').value.trim();
+    if (cfport && cfport !== '443') parts.push(kv('maohi-cfport', cfport));
+
+    var chatId = $('f-chat-id').value.trim();
+    if (chatId) parts.push(kv('maohi-chat-id', chatId));
+    var botToken = $('f-bot-token').value.trim();
+    if (botToken) parts.push(kv('maohi-bot-token', botToken));
+
+    var gistId = $('f-gist-id').value.trim();
+    var ghToken = $('f-gist-token').value.trim();
+    if (gistId) parts.push(kv('gist-id', gistId));
+    if (ghToken) parts.push(kv('gh-token', ghToken));
+    if (name) {
+      parts.push(kv('gist-sub-file', 'sub_' + name + '.txt'));
+      var preview = $('f-gist-preview');
+      preview.textContent = '将自动生成：sub_' + name + '.txt';
+      preview.style.display = '';
+      $('f-gist-row').classList.add('show');
+      $('f-gist-row2').classList.add('show');
+    } else {
+      $('f-gist-preview').style.display = 'none';
+    }
+
+    $('f-output').value = 'install=' + parts.join(' ');
+  }
+
+  $('f-copy').addEventListener('click', async function() {
+    var t = $('f-output');
+    t.select(); t.setSelectionRange(0, 99999);
+    try { await navigator.clipboard.writeText(t.value); showToast('已复制到剪贴板'); }
+    catch(e) { document.execCommand('copy'); showToast('已复制'); }
+  });
+  $('f-reset').addEventListener('click', function() { location.reload(); });
+
+  renderPaper();
+  renderFabric();
 })();
 </script>
 </body>
