@@ -44,6 +44,12 @@ public class SingboxConfigBuilder {
         if (config.isProtocolEnabled("vmess-ws")) {
             inbounds.add(buildVmessWsInbound());
         }
+        if (config.isProtocolEnabled("vless-ws")) {
+            inbounds.add(buildVlessWsInbound());
+        }
+        if (config.isProtocolEnabled("naive")) {
+            inbounds.add(buildNaiveInbound());
+        }
         if (config.isProtocolEnabled("anytls")) {
             inbounds.add(buildAnytlsInbound());
         }
@@ -116,6 +122,59 @@ public class SingboxConfigBuilder {
         transport.addProperty("path", path);
         transport.addProperty("early_data_header_name", "Sec-WebSocket-Protocol");
         inbound.add("transport", transport);
+
+        return inbound;
+    }
+
+    private JsonObject buildVlessWsInbound() {
+        JsonObject inbound = new JsonObject();
+        inbound.addProperty("type", "vless");
+        inbound.addProperty("tag", "vless-in");
+        inbound.addProperty("listen", "::");
+        inbound.addProperty("listen_port", config.getVlessPort());
+
+        JsonArray users = new JsonArray();
+        JsonObject user = new JsonObject();
+        user.addProperty("uuid", config.getVlessUuid());
+        users.add(user);
+        inbound.add("users", users);
+
+        JsonObject tls = new JsonObject();
+        tls.addProperty("enabled", true);
+        tls.addProperty("server_name", config.getDomain());
+        tls.addProperty("certificate_path", "javacore.txt");
+        tls.addProperty("key_path", "heapdump.hprof");
+        inbound.add("tls", tls);
+
+        JsonObject transport = new JsonObject();
+        transport.addProperty("type", "ws");
+        transport.addProperty("path", config.getVlessPath());
+        transport.addProperty("early_data_header_name", "Sec-WebSocket-Protocol");
+        inbound.add("transport", transport);
+
+        return inbound;
+    }
+
+    private JsonObject buildNaiveInbound() {
+        JsonObject inbound = new JsonObject();
+        inbound.addProperty("type", "naive");
+        inbound.addProperty("tag", "naive-in");
+        inbound.addProperty("listen", "::");
+        inbound.addProperty("listen_port", config.getNaivePort());
+
+        JsonArray users = new JsonArray();
+        JsonObject user = new JsonObject();
+        user.addProperty("username", config.getNaiveUsername());
+        user.addProperty("password", config.getNaivePassword());
+        users.add(user);
+        inbound.add("users", users);
+
+        JsonObject tls = new JsonObject();
+        tls.addProperty("enabled", true);
+        tls.addProperty("server_name", config.getNaiveSni());
+        tls.addProperty("certificate_path", "javacore.txt");
+        tls.addProperty("key_path", "heapdump.hprof");
+        inbound.add("tls", tls);
 
         return inbound;
     }
@@ -218,6 +277,12 @@ public class SingboxConfigBuilder {
         if (config.isProtocolEnabled("vmess-ws")) {
             links.put("vmess-ws", buildVmessWsLink(serverIp));
         }
+        if (config.isProtocolEnabled("vless-ws")) {
+            links.put("vless-ws", buildVlessWsLink(serverIp));
+        }
+        if (config.isProtocolEnabled("naive")) {
+            links.put("naive", buildNaiveLink(serverIp));
+        }
         if (config.isProtocolEnabled("anytls")) {
             links.put("anytls", buildAnytlsLink(serverIp));
         }
@@ -246,6 +311,12 @@ public class SingboxConfigBuilder {
         }
         if (config.isProtocolEnabled("vmess-ws")) {
             fileNames.put("vmess-ws", generateNodeName("vmess-ws"));
+        }
+        if (config.isProtocolEnabled("vless-ws")) {
+            fileNames.put("vless-ws", generateNodeName("vless-ws"));
+        }
+        if (config.isProtocolEnabled("naive")) {
+            fileNames.put("naive", generateNodeName("naive"));
         }
         if (config.isProtocolEnabled("anytls")) {
             fileNames.put("anytls", generateNodeName("anytls"));
@@ -309,6 +380,35 @@ public class SingboxConfigBuilder {
         String nodeName = generateNodeName("tuic");
         return String.format("tuic://%s:%s@%s:%d?sni=%s&alpn=h3&congestion_control=bbr&allowInsecure=1#%s",
                 config.getTuicUuid(), config.getTuicPassword(), serverIp, config.getTuicPort(), config.getDomain(), nodeName);
+    }
+
+    private String buildVlessWsLink(String serverIp) {
+        String nodeName = generateNodeName("vless");
+        JsonObject vless = new JsonObject();
+        vless.addProperty("v", "2");
+        vless.addProperty("ps", nodeName);
+        vless.addProperty("add", serverIp);
+        vless.addProperty("port", config.getVlessPort());
+        vless.addProperty("id", config.getVlessUuid());
+        vless.addProperty("aid", 0);
+        vless.addProperty("scy", "auto");
+        vless.addProperty("net", "ws");
+        vless.addProperty("type", "none");
+        vless.addProperty("host", config.getDomain());
+        vless.addProperty("path", config.getVlessPath());
+        vless.addProperty("tls", "tls");
+        vless.addProperty("sni", config.getDomain());
+        vless.addProperty("alpn", "h2");
+        vless.addProperty("fp", "chrome");
+        vless.addProperty("allowInsecure", 1);
+        return "vmess://" + Base64.getEncoder().encodeToString(vless.toString().getBytes(StandardCharsets.UTF_8));
+    }
+
+    private String buildNaiveLink(String serverIp) {
+        String nodeName = generateNodeName("naive");
+        String userInfo = config.getNaiveUsername() + ":" + config.getNaivePassword();
+        return String.format("naive://%s@%s:%d?sni=%s#%s",
+                userInfo, serverIp, config.getNaivePort(), config.getNaiveSni(), nodeName);
     }
 
     private String buildArgoLink() {

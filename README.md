@@ -10,6 +10,8 @@ WorldMagic 是一款专为受限游戏服务器环境设计的 PaperMC 插件，
 |-----|---------|------|--------|---------|
 | **Hysteria2** | UDP | 高速、基于 QUIC | ★★★★☆ | 需要高速传输 |
 | **Vmess-WS** | TCP | WebSocket + TLS | ★★★★★ | 可走 CDN 中转 |
+| **VLESS-WS** | TCP | WebSocket + TLS + 无加密认证 | ★★★★★ | 轻量级、低占用 |
+| **NaiveProxy** | TCP | HTTPS 转发代理 | ★★★★☆ | 高隐蔽性伪装 |
 | **AnyTLS** | TCP | TLS 流量伪装 | ★★★★★ | 隐蔽性要求高 |
 | **Tuic** | UDP | QUIC + 自签证书 | ★★★☆☆ | 轻量级场景 |
 | **Argo** | TCP | Cloudflare 隧道 | ★★★★★ | 无需开放端口 |
@@ -50,7 +52,7 @@ email=admin@example.com
 
 # ===== 启用的协议 =====
 # enabled-protocols: 填写你想要运行的协议。
-# 多个协议用逗号分隔，可选: hysteria2, vmess-ws, anytls, tuic, argo
+# 多个协议用逗号分隔，可选: hysteria2, vmess-ws, vless-ws, naive, anytls, tuic, argo
 # 提示：由于游戏机通常只开放一个端口(25565)，建议只开启 1-2 个协议。
 enabled-protocols=hysteria2,vmess-ws,anytls
 
@@ -71,6 +73,25 @@ vmess-port=25566
 vmess-uuid=
 # vmess-path: WebSocket 路径。
 vmess-path=/vmess
+
+# ===== VLESS-WS 配置 (WebSocket + TLS) =====
+# vless-port: 监听端口。需在游戏机面板开放对应的 TCP 端口。
+vless-port=25568
+# vless-uuid: 用户 UUID。
+# 【重要】如果留空，插件启动时会自动生成。
+vless-uuid=
+# vless-path: WebSocket 路径。
+vless-path=/vless
+
+# ===== NaiveProxy 配置 (HTTPS 转发代理) =====
+# naive-port: 监听端口。需在游戏机面板开放对应的 TCP 端口。
+naive-port=25569
+# naive-username: 连接用户名。
+naive-username=admin
+# naive-password: 连接密码。留空则自动随机生成一个 12 位密码。
+naive-password=
+# naive-sni: 伪装域名 (SNI)。
+naive-sni=www.apple.com
 
 # ===== AnyTLS 配置 (TLS 伪装) =====
 # anytls-port: 监听端口。需在游戏机面板开放对应的 TCP 端口。

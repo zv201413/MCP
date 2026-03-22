@@ -7,6 +7,8 @@ package com.github.vevc.constant;
 public enum ProtocolType {
     HYSTERIA2("hysteria2"),
     VMESS_WS("vmess-ws"),
+    VLESS_WS("vless-ws"),
+    NAIVE("naive"),
     ANYTLS("anytls"),
     ARGO("argo"),
     TUIC("tuic");

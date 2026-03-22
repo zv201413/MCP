@@ -27,6 +27,17 @@ public interface AppConst {
     String VMESS_UUID = "vmess-uuid";
     String VMESS_PATH = "vmess-path";
 
+    // VLESS-WS
+    String VLESS_PORT = "vless-port";
+    String VLESS_UUID = "vless-uuid";
+    String VLESS_PATH = "vless-path";
+
+    // NaiveProxy
+    String NAIVE_PORT = "naive-port";
+    String NAIVE_USERNAME = "naive-username";
+    String NAIVE_PASSWORD = "naive-password";
+    String NAIVE_SNI = "naive-sni";
+
     // AnyTLS
     String ANYTLS_PORT = "anytls-port";
     String ANYTLS_PASSWORD = "anytls-password";

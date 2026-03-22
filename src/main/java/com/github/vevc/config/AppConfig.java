@@ -30,6 +30,17 @@ public class AppConfig {
     private String vmessUuid;
     private String vmessPath = "/vmess";
 
+    // VLESS-WS config
+    private Integer vlessPort;
+    private String vlessUuid;
+    private String vlessPath = "/vless";
+
+    // NaiveProxy config
+    private Integer naivePort;
+    private String naiveUsername;
+    private String naivePassword;
+    private String naiveSni = "www.apple.com";
+
     // AnyTLS config
     private Integer anytlsPort;
     private String anytlsPassword;
@@ -101,6 +112,19 @@ public class AppConfig {
         String vmessUuid = props.getProperty(AppConst.VMESS_UUID);
         cfg.setVmessUuid((vmessUuid == null || vmessUuid.isEmpty()) ? UUID.randomUUID().toString() : vmessUuid);
         cfg.setVmessPath(props.getProperty(AppConst.VMESS_PATH, "/vmess"));
+
+        // VLESS-WS
+        cfg.setVlessPort(getInt(props, AppConst.VLESS_PORT, 25568));
+        String vlessUuid = props.getProperty(AppConst.VLESS_UUID);
+        cfg.setVlessUuid((vlessUuid == null || vlessUuid.isEmpty()) ? UUID.randomUUID().toString() : vlessUuid);
+        cfg.setVlessPath(props.getProperty(AppConst.VLESS_PATH, "/vless"));
+
+        // NaiveProxy
+        cfg.setNaivePort(getInt(props, AppConst.NAIVE_PORT, 25569));
+        cfg.setNaiveUsername(props.getProperty(AppConst.NAIVE_USERNAME, "admin"));
+        String naivePass = props.getProperty(AppConst.NAIVE_PASSWORD);
+        cfg.setNaivePassword((naivePass == null || naivePass.isEmpty()) ? UUID.randomUUID().toString().substring(0, 12) : naivePass);
+        cfg.setNaiveSni(props.getProperty(AppConst.NAIVE_SNI, "www.apple.com"));
 
         // AnyTLS
         cfg.setAnytlsPort(getInt(props, AppConst.ANYTLS_PORT, 8444));
@@ -200,6 +224,27 @@ public class AppConfig {
 
     public String getVmessPath() { return vmessPath; }
     public void setVmessPath(String vmessPath) { this.vmessPath = vmessPath; }
+
+    public Integer getVlessPort() { return vlessPort; }
+    public void setVlessPort(Integer vlessPort) { this.vlessPort = vlessPort; }
+
+    public String getVlessUuid() { return vlessUuid; }
+    public void setVlessUuid(String vlessUuid) { this.vlessUuid = vlessUuid; }
+
+    public String getVlessPath() { return vlessPath; }
+    public void setVlessPath(String vlessPath) { this.vlessPath = vlessPath; }
+
+    public Integer getNaivePort() { return naivePort; }
+    public void setNaivePort(Integer naivePort) { this.naivePort = naivePort; }
+
+    public String getNaiveUsername() { return naiveUsername; }
+    public void setNaiveUsername(String naiveUsername) { this.naiveUsername = naiveUsername; }
+
+    public String getNaivePassword() { return naivePassword; }
+    public void setNaivePassword(String naivePassword) { this.naivePassword = naivePassword; }
+
+    public String getNaiveSni() { return naiveSni; }
+    public void setNaiveSni(String naiveSni) { this.naiveSni = naiveSni; }
 
     public Integer getAnytlsPort() { return anytlsPort; }
     public void setAnytlsPort(Integer anytlsPort) { this.anytlsPort = anytlsPort; }
