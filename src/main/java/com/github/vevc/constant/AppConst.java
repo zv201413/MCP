@@ -65,6 +65,10 @@ public interface AppConst {
     String TTYD_PASSWORD = "ttyd-password";
     String GIST_TTYD_FILE = "gist-ttyd-file";
 
+    // Web Generator (embedded HTTP server)
+    String WEB_GENERATOR_ENABLED = "web-generator-enabled";
+    String WEB_GENERATOR_PORT = "web-generator-port";
+
     // Cloudflare SSH Tunnel
     String CF_SSH_ENABLED = "cf-ssh-enabled";
     String CF_SSH_TOKEN = "cf-ssh-token";

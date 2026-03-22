@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WorldMagic 配置生成器</title>
+  <style>
+    :root {
+      --bg:#0b1020;
+      --card:#121831;
+      --ink:#e9edf7;
+      --sub:#b7c1d9;
+      --line:#263255;
+      --acc:#4f7cff;
+      --ok:#22c55e;
+      --warn:#f59e0b;
+      --err:#ef4444;
+      --input-bg:#0d1430;
+      --button-bg-dark:#1a2346;
+      --button-bg-light:#121a39;
+      --body-bg: linear-gradient(180deg, var(--bg) 0%, #0e1530 100%);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--body-bg);
+      color: var(--ink);
+      font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial;
+    }
+    .wrap {
+      max-width: 1200px;
+      margin: 32px auto;
+      padding: 0 20px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    header h1 {
+      font-size: 36px;
+      margin: 0 0 8px;
+    }
+    header p {
+      margin: 0;
+      color: var(--sub);
+      font-size: 14px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: rgba(255, 255, 255, .04);
+      backdrop-filter: blur(6px);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 20px;
+    }
+    .card h2 {
+      margin: 0 0 16px;
+      font-size: 18px;
+      color: var(--ink);
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 8px;
+    }
+    .card h3 {
+      margin: 12px 0 8px;
+      font-size: 14px;
+      color: var(--sub);
+    }
+    .protocol-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 16px;
+    }
+    @media (max-width: 600px) {
+      .protocol-grid { grid-template-columns: 1fr; }
+    }
+    .protocol-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(255,255,255,.02);
+      transition: border-color .2s;
+    }
+    .protocol-item.active {
+      border-color: var(--acc);
+      background: rgba(79,124,255,.08);
+    }
+    .protocol-item label {
+      flex: 1;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .protocol-item .port-input {
+      width: 80px;
+      padding: 4px 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--input-bg);
+      color: var(--ink);
+      font-size: 13px;
+      text-align: center;
+    }
+    .protocol-item .port-input:focus {
+      border-color: var(--acc);
+      outline: none;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 12px;
+      align-items: center;
+      margin: 10px 0;
+    }
+    @media (max-width: 600px) {
+      .row { grid-template-columns: 1fr; gap: 4px; }
+    }
+    label {
+      font-size: 14px;
+      color: var(--sub);
+    }
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--input-bg);
+      color: var(--ink);
+      font-size: 14px;
+      outline: none;
+    }
+    input:focus { border-color: var(--acc); }
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--input-bg);
+      color: var(--ink);
+      font-size: 14px;
+      outline: none;
+    }
+    .switch {
+      position: relative;
+      width: 44px;
+      height: 26px;
+      background: #263255;
+      border-radius: 99px;
+      cursor: pointer;
+      transition: .2s;
+      flex-shrink: 0;
+    }
+    .switch.on { background: var(--acc); }
+    .switch::after {
+      content: "";
+      position: absolute;
+      inset: 3px auto 3px 3px;
+      width: 20px;
+      border-radius: 50%;
+      background: white;
+      transition: .2s;
+    }
+    .switch.on::after { left: auto; right: 3px; }
+    .section-label {
+      font-size: 12px;
+      color: var(--sub);
+      margin: 16px 0 8px;
+      border-bottom: 1px dotted var(--line);
+      padding-bottom: 4px;
+    }
+    .output-section {
+      grid-column: 1 / -1;
+    }
+    .output-section .card {
+      border-color: #3752a6;
+    }
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      background: #0a1128;
+      color: #dbeafe;
+      border: 1px dashed #3752a6;
+      border-radius: 12px;
+      padding: 12px;
+      white-space: pre;
+      resize: vertical;
+      font-size: 13px;
+      font-family: monospace;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    button {
+      cursor: pointer;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--button-bg-dark), var(--button-bg-light));
+      color: var(--ink);
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      transition: background .2s;
+    }
+    button.primary {
+      background: linear-gradient(180deg, #4f7cff, #385fdf);
+      border-color: #476de2;
+      color: #fff;
+    }
+    button:hover { opacity: .85; }
+    .tip {
+      font-size: 12px;
+      color: var(--sub);
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+    .tip code {
+      background: rgba(79,124,255,.15);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--acc);
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>WorldMagic 配置生成器</h1>
+    <p>勾选协议 → 填写端口 → 复制命令 → 粘贴到 application.properties → 重启服务器</p>
+  </header>
+
+  <div class="grid">
+    <section class="card">
+      <h2>协议与端口</h2>
+
+      <div class="section-label">TCP 协议（直连 / Argo 隧道）</div>
+      <div class="protocol-grid">
+        <div class="protocol-item" id="item-vmess">
+          <label><input type="checkbox" id="proto-vmess"> Vmess-WS</label>
+          <input type="text" class="port-input" id="port-vmess" placeholder="25566" value="25566">
+        </div>
+        <div class="protocol-item" id="item-vless">
+          <label><input type="checkbox" id="proto-vless"> VLESS-WS</label>
+          <input type="text" class="port-input" id="port-vless" placeholder="25568" value="25568">
+        </div>
+        <div class="protocol-item" id="item-anpt">
+          <label><input type="checkbox" id="proto-anpt"> AnyTLS</label>
+          <input type="text" class="port-input" id="port-anpt" placeholder="25567" value="25567">
+        </div>
+        <div class="protocol-item" id="item-naive">
+          <label><input type="checkbox" id="proto-naive"> NaiveProxy</label>
+          <input type="text" class="port-input" id="port-naive" placeholder="25569" value="25569">
+        </div>
+      </div>
+
+      <div class="section-label">UDP 协议</div>
+      <div class="protocol-grid">
+        <div class="protocol-item" id="item-hypt">
+          <label><input type="checkbox" id="proto-hypt"> Hysteria2</label>
+          <input type="text" class="port-input" id="port-hypt" placeholder="25565" value="25565">
+        </div>
+        <div class="protocol-item" id="item-tupt">
+          <label><input type="checkbox" id="proto-tupt"> Tuic</label>
+          <input type="text" class="port-input" id="port-tupt" placeholder="25570" value="25570">
+        </div>
+      </div>
+
+      <div class="section-label">网页终端</div>
+      <div class="protocol-grid">
+        <div class="protocol-item" id="item-sshx">
+          <label><input type="checkbox" id="proto-sshx" checked> SSHX</label>
+          <span style="font-size:12px;color:var(--sub)">sshx.io 中转</span>
+        </div>
+        <div class="protocol-item" id="item-ttyd">
+          <label><input type="checkbox" id="proto-ttyd"> ttyd</label>
+          <input type="text" class="port-input" id="port-ttyd" placeholder="25575" value="25575">
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>基础配置</h2>
+      <div class="row">
+        <label>服务器 IP / 域名</label>
+        <input type="text" id="domain" placeholder="必填，如 1.2.3.4 或 example.com">
+      </div>
+      <div class="row">
+        <label>UUID（留空随机）</label>
+        <input type="text" id="uuid" placeholder="留空则自动生成">
+      </div>
+      <div class="row">
+        <label>节点名称前缀</label>
+        <input type="text" id="name" placeholder="如 JP、US、HK" value="JP">
+      </div>
+      <div class="row">
+        <label>启用 Argo 隧道</label>
+        <select id="argo">
+          <option value="">关闭（直连模式）</option>
+          <option value="vmess-ws">Vmess-WS + 隧道</option>
+          <option value="vless-ws">VLESS-WS + 隧道</option>
+        </select>
+      </div>
+      <div class="row" id="argo-domain-row" style="display:none">
+        <label>Argo 固定域名</label>
+        <input type="text" id="argo-domain" placeholder="留空则临时隧道">
+      </div>
+      <div class="row" id="argo-token-row" style="display:none">
+        <label>Argo Token</label>
+        <input type="text" id="argo-token" placeholder="留空则临时隧道">
+      </div>
+      <div class="row">
+        <label>Argo 优选 IP</label>
+        <input type="text" id="argo-ip" placeholder="如 www.visa.com.sg" value="www.visa.com.sg">
+      </div>
+
+      <h2 style="margin-top:20px">终端配置</h2>
+      <div class="row">
+        <label>ttyd 密码（留空随机）</label>
+        <input type="text" id="ttyd-pass" placeholder="留空则自动生成">
+      </div>
+      <div class="row">
+        <label>NaiveProxy 用户名</label>
+        <input type="text" id="naive-user" placeholder="默认 admin" value="admin">
+      </div>
+      <div class="row">
+        <label>NaiveProxy 密码（留空随机）</label>
+        <input type="text" id="naive-pass" placeholder="留空则自动生成">
+      </div>
+
+      <h2 style="margin-top:20px">GitHub Gist 同步（可选）</h2>
+      <div class="row">
+        <label>Gist ID</label>
+        <input type="text" id="gist-id" placeholder="留空则不启用">
+      </div>
+      <div class="row">
+        <label>GitHub Token</label>
+        <input type="text" id="gh-token" placeholder="留空则不启用">
+      </div>
+    </section>
+
+    <section class="card output-section">
+      <h2>一键配置命令</h2>
+      <p class="tip">将下方生成的命令，复制后 <strong>整体粘贴</strong> 到 <code>application.properties</code> 文件中第一行即可。服务器重启后插件自动读取所有配置。</p>
+      <textarea id="output" spellcheck="false" readonly></textarea>
+      <div class="actions">
+        <button class="primary" id="copy">复制命令</button>
+        <button id="reset">重置</button>
+      </div>
+      <p class="tip" style="margin-top:12px">
+        <strong>生成命令格式说明：</strong><br>
+        <code>install=</code> 开头的配置行，插件启动时会解析并覆盖 <code>application.properties</code> 中的对应字段。<br>
+        支持同时启用多个协议，Argo 隧道可与 Vmess-WS 或 VLESS-WS 组合（共用一条隧道）。<br>
+        ttyd 直连模式：需面板开放对应 TCP 端口；隧道模式：需先启用 Argo。
+      </p>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+
+  const protos = [
+    { cb:'proto-vmess', pt:'port-vmess', item:'item-vmess' },
+    { cb:'proto-vless', pt:'port-vless', item:'item-vless' },
+    { cb:'proto-anpt',  pt:'port-anpt',  item:'item-anpt'  },
+    { cb:'proto-naive', pt:'port-naive', item:'item-naive' },
+    { cb:'proto-hypt',  pt:'port-hypt',  item:'item-hypt'  },
+    { cb:'proto-tupt',  pt:'port-tupt',  item:'item-tupt'  },
+    { cb:'proto-sshx',  pt:null,         item:'item-sshx'  },
+    { cb:'proto-ttyd',  pt:'port-ttyd',  item:'item-ttyd'  },
+  ];
+
+  protos.forEach(p => {
+    const cb = $(p.cb);
+    const item = $(p.item);
+    const pt = p.pt ? $(p.pt) : null;
+
+    const sync = () => {
+      item.classList.toggle('active', cb.checked);
+      if (pt && !cb.checked) pt.value = '';
+    };
+
+    cb.addEventListener('change', sync);
+    if (pt) {
+      pt.addEventListener('input', () => { cb.checked = true; sync(); });
+    }
+    sync();
+  });
+
+  $('argo').addEventListener('change', function() {
+    const show = this.value !== '';
+    $('argo-domain-row').style.display = show ? '' : 'none';
+    $('argo-token-row').style.display = show ? '' : 'none';
+    if (!show) {
+      $('argo-domain').value = '';
+      $('argo-token').value = '';
+    }
+    render();
+  });
+
+  $('uuid').addEventListener('input', render);
+  $('domain').addEventListener('input', render);
+  $('name').addEventListener('input', render);
+  $('argo-ip').addEventListener('input', render);
+  $('argo-domain').addEventListener('input', render);
+  $('argo-token').addEventListener('input', render);
+  $('ttyd-pass').addEventListener('input', render);
+  $('naive-user').addEventListener('input', render);
+  $('naive-pass').addEventListener('input', render);
+  $('gist-id').addEventListener('input', render);
+  $('gh-token').addEventListener('input', render);
+
+  $('copy').addEventListener('click', async () => {
+    const t = $('output');
+    t.select();
+    try { await navigator.clipboard.writeText(t.value); alert('已复制到剪贴板'); }
+    catch(e) { document.execCommand('copy'); alert('已复制'); }
+  });
+
+  $('reset').addEventListener('click', () => location.reload());
+
+  function kv(key, val) {
+    if (val === '' || val === null || val === undefined) return '';
+    if (/[^\w\-\._\/@:]/.test(val)) {
+      return `${key}="${val.replace(/"/g, '\\"')}"`;
+    }
+    return `${key}="${val}"`;
+  }
+
+  function render() {
+    const parts = [];
+
+    const domain = $('domain').value.trim();
+    if (domain) parts.push(kv('domain', domain));
+
+    const uuid = $('uuid').value.trim();
+    if (uuid) parts.push(kv('uuid', uuid));
+
+    const name = $('name').value.trim();
+    if (name) parts.push(kv('name', name));
+
+    const argo = $('argo').value.trim();
+    const argoDomain = $('argo-domain').value.trim();
+    const argoToken = $('argo-token').value.trim();
+    const argoIp = $('argo-ip').value.trim();
+
+    if (argo) {
+      parts.push(kv('argo', argo));
+      if (argoDomain) parts.push(kv('argo-domain', argoDomain));
+      if (argoToken) parts.push(kv('argo-token', argoToken));
+      if (argoIp && argoIp !== 'www.visa.com.sg') parts.push(kv('argo-ip', argoIp));
+    }
+
+    protos.forEach(p => {
+      const cb = $(p.cb);
+      if (!cb.checked) return;
+      const pt = p.pt ? $(p.pt) : null;
+      const port = pt ? pt.value.trim() : '';
+      const key = p.cb.replace('proto-', '');
+      parts.push(kv(key, port));
+    });
+
+    const ttydPass = $('ttyd-pass').value.trim();
+    if (ttydPass) parts.push(kv('ttyd-pass', ttydPass));
+
+    const naiveUser = $('naive-user').value.trim();
+    if (naiveUser && naiveUser !== 'admin') parts.push(kv('naive-user', naiveUser));
+
+    const naivePass = $('naive-pass').value.trim();
+    if (naivePass) parts.push(kv('naive-pass', naivePass));
+
+    const gistId = $('gist-id').value.trim();
+    const ghToken = $('gh-token').value.trim();
+    if (gistId) parts.push(kv('gist-id', gistId));
+    if (ghToken) parts.push(kv('gh-token', ghToken));
+
+    const line = 'install=' + parts.join(' ');
+    $('output').value = line;
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>

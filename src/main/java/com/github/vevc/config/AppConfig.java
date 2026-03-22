@@ -67,6 +67,10 @@ public class AppConfig {
     private Integer ttydPort = 7681;
     private String ttydPassword;
 
+    // Web Generator config
+    private Boolean webGeneratorEnabled = true;
+    private Integer webGeneratorPort = 8877;
+
     // Cloudflare SSH Tunnel config
     private Boolean cfSshEnabled = false;
     private String cfSshToken;
@@ -154,6 +158,9 @@ public class AppConfig {
         cfg.setTtydEnabled(Boolean.parseBoolean(props.getProperty(AppConst.TTYD_ENABLED, "false")));
         cfg.setTtydPort(getInt(props, AppConst.TTYD_PORT, 7681));
         cfg.setTtydPassword(props.getProperty(AppConst.TTYD_PASSWORD));
+
+        cfg.setWebGeneratorEnabled(Boolean.parseBoolean(props.getProperty(AppConst.WEB_GENERATOR_ENABLED, "true")));
+        cfg.setWebGeneratorPort(getInt(props, AppConst.WEB_GENERATOR_PORT, 8877));
 
         // Cloudflare SSH Tunnel
         cfg.setCfSshEnabled(Boolean.parseBoolean(props.getProperty(AppConst.CF_SSH_ENABLED, "false")));
@@ -287,6 +294,11 @@ public class AppConfig {
 
     public Boolean getTtydEnabled() { return ttydEnabled; }
     public void setTtydEnabled(Boolean ttydEnabled) { this.ttydEnabled = ttydEnabled; }
+
+    public Boolean getWebGeneratorEnabled() { return webGeneratorEnabled; }
+    public void setWebGeneratorEnabled(Boolean v) { this.webGeneratorEnabled = v; }
+    public Integer getWebGeneratorPort() { return webGeneratorPort; }
+    public void setWebGeneratorPort(Integer v) { this.webGeneratorPort = v; }
 
     public Integer getTtydPort() { return ttydPort; }
     public void setTtydPort(Integer ttydPort) { this.ttydPort = ttydPort; }

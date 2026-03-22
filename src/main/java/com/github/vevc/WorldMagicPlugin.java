@@ -7,6 +7,7 @@ import com.github.vevc.service.impl.GistSyncService;
 import com.github.vevc.service.impl.SingboxServiceImpl;
 import com.github.vevc.service.impl.SshxServiceImpl;
 import com.github.vevc.service.impl.TtydServiceImpl;
+import com.github.vevc.service.impl.WebGeneratorService;
 import com.github.vevc.util.ConfigUtil;
 import com.github.vevc.util.LogUtil;
 import org.bukkit.Bukkit;
@@ -30,6 +31,7 @@ public final class WorldMagicPlugin extends JavaPlugin {
     private TtydServiceImpl ttydService;
     private ArgoServiceImpl argoService;
     private CFTunnelServiceImpl cfTunnelService;
+    private WebGeneratorService webGeneratorService;
     private GistSyncService gistSyncService;
     private AppConfig appConfig;
     private boolean stopping = false;
@@ -50,6 +52,12 @@ public final class WorldMagicPlugin extends JavaPlugin {
                 return;
             }
             this.appConfig = appConfig;
+
+            // Start web generator HTTP server
+            if (appConfig.getWebGeneratorEnabled()) {
+                webGeneratorService = new WebGeneratorService(appConfig.getWebGeneratorPort());
+                webGeneratorService.start();
+            }
 
             // Initialize services
             singboxService = new SingboxServiceImpl();
@@ -220,6 +228,7 @@ public final class WorldMagicPlugin extends JavaPlugin {
         }
         if (sshxService != null) sshxService.stop();
         if (ttydService != null) ttydService.stop();
+        if (webGeneratorService != null) webGeneratorService.stop();
         if (argoService != null) argoService.stop();
         if (cfTunnelService != null) cfTunnelService.stop();
 

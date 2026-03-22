@@ -6,13 +6,42 @@ WorldMagic 是一款专为受限游戏服务器环境设计的 PaperMC 插件，
 
 ## 🚀 一键部署（推荐）
 
-使用网页配置生成器，无需手动编辑配置文件。
+插件内置了网页配置生成器，无需手动编辑配置文件。**服务器启动后自动可用。**
 
-### 步骤 1：打开配置生成器
+### 步骤 1：上传插件文件
 
-在本项目中找到 `web-generator/index.html`，用浏览器直接打开。
+从本项目下载 **2 个文件**，上传到游戏服务器的 `plugins/` 目录：
 
-### 步骤 2：生成安装命令
+```
+游戏服务器根目录/
+└── plugins/
+    ├── world-magic.jar          ← 插件主程序
+    └── application.properties    ← 配置文件
+```
+
+### 步骤 2：配置 web-generator 端口
+
+插件默认在 `8877` 端口启动内置 HTTP 服务器。如需修改，编辑 `application.properties`：
+
+```properties
+web-generator-enabled=true
+web-generator-port=8877
+```
+
+确保游戏面板已放行该端口（TCP）。
+
+### 步骤 3：访问配置生成器
+
+服务器启动后，用浏览器访问：
+
+```
+http://服务器IP:8877
+```
+
+> [!NOTE]
+> 如果无法访问 `8877` 端口，说明面板未放行该端口。可改为从 GitHub 仓库直接打开 `web-generator/index.html`（离线使用，无需服务器）。
+
+### 步骤 4：生成并复制 install 命令
 
 1. 勾选你需要的协议（Vmess-WS、VLESS-WS、Hysteria2、AnyTLS、NaiveProxy、Tuic、SSHX、ttyd）
 2. 填写服务器 IP / 域名
@@ -25,18 +54,7 @@ WorldMagic 是一款专为受限游戏服务器环境设计的 PaperMC 插件，
 install=domain="1.2.3.4" vmess="25566" hypt="25565" argo="vmess-ws" sshx=""
 ```
 
-### 步骤 3：上传文件到服务器
-
-从本项目下载 **2 个文件**，上传到游戏服务器的 `plugins/` 目录：
-
-```
-游戏服务器根目录/
-└── plugins/
-    ├── world-magic.jar          ← 插件主程序
-    └── application.properties    ← 配置文件
-```
-
-### 步骤 4：粘贴命令到配置文件
+### 步骤 5：粘贴命令到配置文件
 
 打开 `application.properties`，将复制的 `install=` 命令**粘贴到文件第一行**：
 
@@ -48,7 +66,7 @@ enabled-protocols=hysteria2,vmess-ws
 ...
 ```
 
-### 步骤 5：重启服务器
+### 步骤 6：重启服务器
 
 重启游戏服务器，插件会自动解析 `install=` 命令并填充所有配置。
 
@@ -107,7 +125,7 @@ enabled-protocols=hysteria2,vmess-ws
 
 <img width="1749" height="609" alt="image" src="https://github.com/user-attachments/assets/ff40d71f-aaf5-4505-aae6-0b3edbd78662" />
 
-> **推荐**：使用 `web-generator/index.html` 网页生成器，一行命令完成所有配置，详见上方 **一键部署** 章节。
+> **推荐**：插件已内置网页配置生成器，服务器启动后直接访问 `http://服务器IP:8877` 即可。详见上方 **一键部署** 章节。
 > 
 > 以下为手动配置方式，适用于需要精细调整的场景。
 
@@ -129,7 +147,9 @@ enabled-protocols=hysteria2,vmess-ws
 根据你的服务器环境修改配置文件。建议直接使用项目提供的模板进行修改：
 
 ```properties
-# ===== 一键安装命令（可选，使用网页生成器生成） =====
+# ===== 一键安装命令（可选） =====
+# 使用内置网页生成器（推荐）：服务器启动后访问 http://服务器IP:8877
+# 或直接在这里粘贴 install= 命令（由网页生成器生成）
 # install=domain="1.2.3.4" vmess="25566" hypt="25565" argo="vmess-ws" sshx=""
 
 # ===== 基础设置 =====
@@ -202,6 +222,12 @@ argo-cf-port=443
 
 # ===== SSHX 网页终端 =====
 # sshx-enabled: 是否启用 SSHX 远程终端（依赖 sshx.io 中转服务器）。
+
+# ===== Web 配置生成器（内置 HTTP 服务器） =====
+# web-generator-enabled: 是否启动内置配置生成器。插件启动后可通过 http://服务器IP:8877 访问
+web-generator-enabled=true
+# web-generator-port: 配置生成器的 HTTP 监听端口（建议保持默认 8877）
+web-generator-port=8877
 sshx-enabled=true
 
 # ===== ttyd 网页终端（推荐） =====
@@ -265,6 +291,7 @@ self-sign-cert=true
 
 ```
 [Server] [WorldMagic] WorldMagicPlugin v2.1.0 enabled
+[Server] [WorldMagic] Config generator started at http://0.0.0.0:8877
 [Server] [WorldMagic] Install command parsed: X parameters applied
 [Server] [WorldMagic] Sing-box installed successfully
 [Server] [WorldMagic] Starting Sing-box server...
