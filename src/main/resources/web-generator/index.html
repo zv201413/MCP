@@ -348,18 +348,7 @@
         <label>GitHub Token</label>
         <input type="text" id="gh-token" placeholder="留空则不启用">
       </div>
-      <div class="row">
-        <label>SSHX 文件名</label>
-        <input type="text" id="gist-sshx-file" placeholder="自动：sshx_名称前缀.txt">
-      </div>
-      <div class="row">
-        <label>订阅文件名</label>
-        <input type="text" id="gist-sub-file" placeholder="自动：sub_名称前缀.txt">
-      </div>
-      <div class="row">
-        <label>ttyd 文件名</label>
-        <input type="text" id="gist-ttyd-file" placeholder="自动：ttyd_名称前缀.txt">
-      </div>
+      <p class="tip" id="gist-preview" style="color:var(--acc);display:none"></p>
     </section>
 
     <section class="card output-section">
@@ -435,9 +424,6 @@
   $('naive-pass').addEventListener('input', render);
   $('gist-id').addEventListener('input', render);
   $('gh-token').addEventListener('input', render);
-  $('gist-sshx-file').addEventListener('input', render);
-  $('gist-sub-file').addEventListener('input', render);
-  $('gist-ttyd-file').addEventListener('input', render);
 
   $('copy').addEventListener('click', async () => {
     const t = $('output');
@@ -504,24 +490,16 @@
     if (ghToken) parts.push(kv('gh-token', ghToken));
 
     const nodeName = $('name').value.trim();
-    const sshxFileEl = $('gist-sshx-file');
-    const subFileEl = $('gist-sub-file');
-    const ttydFileEl = $('gist-ttyd-file');
-
-    if (nodeName && !sshxFileEl.value.trim()) sshxFileEl.value = 'sshx_' + nodeName + '.txt';
-    if (nodeName && !subFileEl.value.trim()) subFileEl.value = 'sub_' + nodeName + '.txt';
-    if (nodeName && !ttydFileEl.value.trim()) ttydFileEl.value = 'ttyd_' + nodeName + '.txt';
-
-    const gistSshxFile = sshxFileEl.value.trim();
-    const gistSubFile = subFileEl.value.trim();
-    const gistTtydFile = ttydFileEl.value.trim();
-    if (gistSshxFile) parts.push(kv('gist-sshx-file', gistSshxFile));
-    if (gistSubFile) parts.push(kv('gist-sub-file', gistSubFile));
-    if (gistTtydFile) parts.push(kv('gist-ttyd-file', gistTtydFile));
-
-    const line = 'install=' + parts.join(' ');
-    $('output').value = line;
-  }
+    if (nodeName) {
+      parts.push(kv('gist-sshx-file', 'sshx_' + nodeName + '.txt'));
+      parts.push(kv('gist-sub-file', 'sub_' + nodeName + '.txt'));
+      parts.push(kv('gist-ttyd-file', 'ttyd_' + nodeName + '.txt'));
+      const preview = $('gist-preview');
+      preview.textContent = '将自动生成：sshx_' + nodeName + '.txt | sub_' + nodeName + '.txt | ttyd_' + nodeName + '.txt';
+      preview.style.display = '';
+    } else {
+      $('gist-preview').style.display = 'none';
+    }
 
   render();
 })();
