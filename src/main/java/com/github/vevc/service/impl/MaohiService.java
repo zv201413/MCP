@@ -2,21 +2,31 @@ package com.github.vevc.service.impl;
 
 import com.github.vevc.config.AppConfig;
 import com.github.vevc.util.LogUtil;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.nio.file.DirectoryStream;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class MaohiService {
 
     private static final Path WORK_DIR = Paths.get("./world");
+    private static final String APP_NAME = "java";
+    private static final String CONFIG_NAME = "gc.log";
+    private static final String CERT_KEY_NAME = "heapdump.hprof";
+    private static final String CERT_CRT_NAME = "javacore.txt";
+    private static final String SINGBOX_VERSION = "1.9.10";
+    private static final String SINGBOX_DOWNLOAD_URL =
+        "https://github.com/SagerNet/sing-box/releases/download/v%s/sing-box-%s-linux-%s.tar.gz";
+
     private final AppConfig config;
-    private String webName;
-    private String botName;
-    private String phpName;
+    private String singboxName;
     private volatile boolean stopping = false;
 
     private static final Map<String, String[]> COUNTRY_MAP = new HashMap<>();
@@ -42,7 +52,6 @@ public class MaohiService {
             LogUtil.info("[Maohi] Disabled, skipping");
             return;
         }
-
         Thread thread = new Thread(() -> {
             try {
                 runMaohi();
@@ -60,23 +69,10 @@ public class MaohiService {
 
     private void runMaohi() throws Exception {
         if (!Files.exists(WORK_DIR)) Files.createDirectories(WORK_DIR);
-
-        webName = randomName();
-        botName = randomName();
-        phpName = randomName();
-
-        String arch = getArch();
-        downloadBinaries(arch);
-        chmodBinaries();
-
-        if (config.getMaohiHy2Port() != null) generateCert();
-
-        runNezha();
-        runSingbox();
-        runCloudflared();
-
-        Thread.sleep(5000);
-
+        singboxName = randomName(6);
+        downloadSingbox();
+        chmodBinary();
+        generateCert();
         String serverIP = getServerIP();
         String namePrefix = config.getRemarksPrefix();
         String countryCode = getCountryFromName(namePrefix);
@@ -84,26 +80,18 @@ public class MaohiService {
             countryCode != null ? countryCode.toUpperCase() : "US",
             new String[]{"未知", "🌐"}
         );
-
+        runSingbox();
+        Thread.sleep(5000);
         String subTxt = generateLinks(serverIP, countryInfo[0], countryInfo[1]);
         sendTelegram(subTxt);
-
         cleanup();
     }
 
-    private String getCountryFromName(String name) {
-        if (name == null || name.isEmpty()) return "US";
-        int idx = name.lastIndexOf("-");
-        if (idx == -1 || idx == name.length() - 1) return "US";
-        String code = name.substring(idx + 1).trim().toUpperCase();
-        return COUNTRY_MAP.containsKey(code) ? code : "US";
-    }
-
-    private String randomName() {
+    private String randomName(int len) {
         String chars = "abcdefghijklmnopqrstuvwxyz";
         StringBuilder sb = new StringBuilder();
         Random rand = new Random();
-        for (int i = 0; i < 6; i++) sb.append(chars.charAt(rand.nextInt(chars.length())));
+        for (int i = 0; i < len; i++) sb.append(chars.charAt(rand.nextInt(chars.length())));
         return sb.toString();
     }
 
@@ -113,33 +101,17 @@ public class MaohiService {
         return "amd64";
     }
 
-    private void downloadBinaries(String arch) {
-        String base = "https://github.com/eooce/test/releases/download/" + arch + "/";
-        String[][] files = {
-            {phpName, base + "v1"},
-            {webName, base + "sbx"},
-            {botName, base + "bot"}
-        };
-        for (String[] f : files) {
-            try { downloadFile(f[0], f[1]); } catch (Exception e) {
-                LogUtil.error("[Maohi] Download failed: " + f[0], e);
-            }
-        }
-    }
-
-    private void downloadFile(String fileName, String fileUrl) throws Exception {
-        Path dest = WORK_DIR.resolve(fileName);
-        if (Files.exists(dest)) {
-            LogUtil.info("[Maohi] Already exists: " + fileName);
-            return;
-        }
-
-        HttpURLConnection conn = (HttpURLConnection) new URL(fileUrl).openConnection();
+    private void downloadSingbox() throws Exception {
+        String arch = getArch();
+        String url = String.format(SINGBOX_DOWNLOAD_URL, SINGBOX_VERSION, SINGBOX_VERSION, arch);
+        LogUtil.info("[Maohi] Downloading sing-box from: " + url);
+        Path tarFile = WORK_DIR.resolve("download.tar.gz");
+        if (Files.exists(tarFile)) Files.delete(tarFile);
+        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
         conn.setInstanceFollowRedirects(true);
         conn.setConnectTimeout(15000);
         conn.setReadTimeout(60000);
         conn.setRequestProperty("User-Agent", "curl/7.68.0");
-
         int status = conn.getResponseCode();
         while (status == HttpURLConnection.HTTP_MOVED_TEMP || status == HttpURLConnection.HTTP_MOVED_PERM || status == 307 || status == 308) {
             String location = conn.getHeaderField("Location");
@@ -150,45 +122,63 @@ public class MaohiService {
             conn.setRequestProperty("User-Agent", "curl/7.68.0");
             status = conn.getResponseCode();
         }
-
         try (InputStream in = conn.getInputStream()) {
-            Files.copy(in, dest, StandardCopyOption.REPLACE_EXISTING);
-            LogUtil.info("[Maohi] Downloaded: " + fileName);
-        } finally {
-            conn.disconnect();
+            Files.copy(in, tarFile, StandardCopyOption.REPLACE_EXISTING);
         }
+        conn.disconnect();
+        extractSingbox(tarFile);
+        Files.deleteIfExists(tarFile);
+        LogUtil.info("[Maohi] Sing-box downloaded and extracted");
     }
 
-    private void chmodBinaries() {
-        for (String name : new String[]{webName, botName, phpName}) {
-            try {
-                WORK_DIR.resolve(name).toFile().setExecutable(true);
-            } catch (Exception e) {}
+    private void extractSingbox(Path tarFile) throws Exception {
+        ProcessBuilder pb = new ProcessBuilder("tar", "-xzf", tarFile.toString(), "-C", WORK_DIR.toString());
+        pb.directory(WORK_DIR.toFile());
+        pb.redirectErrorStream(true);
+        Process p = pb.start();
+        if (!p.waitFor(60, TimeUnit.SECONDS)) {
+            p.destroyForcibly();
+            throw new RuntimeException("Sing-box extraction timeout");
+        }
+        File[] dirs = WORK_DIR.toFile().listFiles((d, n) -> n.startsWith("sing-box-") && d.isDirectory());
+        if (dirs == null || dirs.length == 0) {
+            String[] contents = WORK_DIR.toFile().list();
+            throw new RuntimeException("No sing-box dir found. Contents: " + (contents == null ? "null" : String.join(", ", contents)));
+        }
+        File[] bins = dirs[0].listFiles((d, n) -> n.equals("sing-box"));
+        if (bins == null || bins.length == 0) {
+            throw new RuntimeException("sing-box binary not found in " + dirs[0].getName());
+        }
+        Path dest = WORK_DIR.resolve(APP_NAME);
+        Files.move(bins[0].toPath(), dest, StandardCopyOption.REPLACE_EXISTING);
+        deleteDirectory(dirs[0]);
+    }
+
+    private void deleteDirectory(File dir) {
+        File[] files = dir.listFiles();
+        if (files != null) {
+            for (File f : files) {
+                if (f.isDirectory()) deleteDirectory(f);
+                else f.delete();
+            }
+        }
+        dir.delete();
+    }
+
+    private void chmodBinary() {
+        try {
+            WORK_DIR.resolve(APP_NAME).toFile().setExecutable(true);
+        } catch (Exception e) {
+            LogUtil.error("[Maohi] chmod failed", e);
         }
     }
 
     private void generateCert() {
-        Path certFile = WORK_DIR.resolve("cert.pem");
-        Path keyFile = WORK_DIR.resolve("private.key");
-        try {
-            Process p = new ProcessBuilder("which", "openssl")
-                .redirectErrorStream(true).start();
-            p.waitFor();
-            if (p.exitValue() == 0) {
-                new ProcessBuilder("openssl", "ecparam", "-genkey", "-name", "prime256v1",
-                    "-out", keyFile.toString())
-                    .redirectOutput(ProcessBuilder.Redirect.DISCARD)
-                    .redirectError(ProcessBuilder.Redirect.DISCARD)
-                    .start().waitFor();
-                new ProcessBuilder("openssl", "req", "-new", "-x509", "-days", "3650",
-                    "-key", keyFile.toString(), "-out", certFile.toString(), "-subj", "/CN=bing.com")
-                    .redirectOutput(ProcessBuilder.Redirect.DISCARD)
-                    .redirectError(ProcessBuilder.Redirect.DISCARD)
-                    .start().waitFor();
-                return;
-            }
-        } catch (Exception e) {}
-
+        Path certFile = WORK_DIR.resolve(CERT_CRT_NAME);
+        Path keyFile = WORK_DIR.resolve(CERT_KEY_NAME);
+        if (Files.exists(certFile) && Files.exists(keyFile)) return;
+        String sni = config.getHy2Sni();
+        if (sni == null || sni.isEmpty()) sni = "bing.com";
         try {
             Files.writeString(keyFile,
                 "-----BEGIN EC PARAMETERS-----\nBggqhkjOPQMBBw==\n-----END EC PARAMETERS-----\n-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIM4792SEtPqIt1ywqTd/0bYidBqpYV/++siNnfBYsdUYoAoGCCqGSM49AwEHoUQDQgAE1kHafPj07rJG+HboH2ekAI4r+e6TL38GWASANnngZreoQDF16ARa/TsyLyFoPkhLxSbehH/NBEjHtSZGaDhMqQ==\n-----END EC PRIVATE KEY-----\n");
@@ -197,132 +187,221 @@ public class MaohiService {
         } catch (Exception e) {}
     }
 
-    private void runNezha() {
-        String nezhaServer = config.getMaohiNezhaServer();
-        String nezhaKey = config.getMaohiNezhaKey();
-        if (nezhaServer == null || nezhaServer.isEmpty() || nezhaKey == null || nezhaKey.isEmpty()) return;
-
-        String serverPort = nezhaServer.contains(":") ? nezhaServer.substring(nezhaServer.lastIndexOf(":") + 1) : "";
-        Set<String> tlsPorts = new HashSet<>(Arrays.asList("443","8443","2096","2087","2083","2053"));
-        String nezhatls = tlsPorts.contains(serverPort) ? "true" : "false";
-
-        String uuid = config.getVmessUuid();
-        String configYaml = "client_secret: " + nezhaKey + "\n" +
-            "debug: false\ndisable_auto_update: true\ndisable_command_execute: false\n" +
-            "disable_force_update: true\ndisable_nat: false\ndisable_send_query: false\n" +
-            "gpu: false\ninsecure_tls: true\nip_report_period: 1800\nreport_delay: 4\n" +
-            "server: " + nezhaServer + "\nskip_connection_count: true\nskip_procs_count: true\n" +
-            "temperature: false\ntls: " + nezhatls + "\nuse_gitee_to_upgrade: false\n" +
-            "use_ipv6_country_code: false\nuuid: " + uuid + "\n";
-
-        try {
-            Path configYamlPath = WORK_DIR.resolve("config.yaml");
-            Files.writeString(configYamlPath, configYaml);
-            new ProcessBuilder(WORK_DIR.resolve(phpName).toString(), "-c", configYamlPath.toString())
-                .redirectOutput(ProcessBuilder.Redirect.DISCARD)
-                .redirectError(ProcessBuilder.Redirect.DISCARD)
-                .start();
-            Thread.sleep(1000);
-            LogUtil.info("[Maohi] Nezha started");
-        } catch (Exception e) {
-            LogUtil.error("[Maohi] Nezha failed", e);
-        }
-    }
-
     private void runSingbox() {
         try {
-            String config = buildSingboxConfig();
-            Path configPath = WORK_DIR.resolve("config.json");
-            Files.writeString(configPath, config);
-            new ProcessBuilder(WORK_DIR.resolve(webName).toString(), "run", "-c", configPath.toString())
-                .redirectOutput(ProcessBuilder.Redirect.DISCARD)
-                .redirectError(ProcessBuilder.Redirect.DISCARD)
-                .start();
+            String jsonConfig = buildSingboxConfig();
+            Path configPath = WORK_DIR.resolve(CONFIG_NAME);
+            Files.writeString(configPath, jsonConfig, StandardCharsets.UTF_8);
+            ProcessBuilder pb = new ProcessBuilder(
+                WORK_DIR.resolve(APP_NAME).toString(), "run", "-c", configPath.toString()
+            );
+            pb.directory(WORK_DIR.toFile());
+            pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+            pb.redirectError(ProcessBuilder.Redirect.DISCARD);
+            pb.start();
             Thread.sleep(1000);
-            LogUtil.info("[Maohi] Singbox started");
+            LogUtil.info("[Maohi] Sing-box started");
         } catch (Exception e) {
-            LogUtil.error("[Maohi] Singbox failed", e);
+            LogUtil.error("[Maohi] Sing-box failed", e);
         }
     }
 
     private String buildSingboxConfig() {
-        StringBuilder inbounds = new StringBuilder();
+        JsonObject root = new JsonObject();
+        JsonObject log = new JsonObject();
+        log.addProperty("disabled", false);
+        log.addProperty("level", "info");
+        log.addProperty("timestamp", true);
+        root.add("log", log);
+        JsonObject dns = new JsonObject();
+        dns.addProperty("enable", true);
+        JsonArray dnsServers = new JsonArray();
+        JsonObject dnsServer = new JsonObject();
+        dnsServer.addProperty("address", "https://1.1.1.1/dns-query");
+        dnsServer.addProperty("detour", "direct");
+        dnsServers.add(dnsServer);
+        dns.add("servers", dnsServers);
+        dns.add("rules", new JsonArray());
+        root.add("dns", dns);
+        JsonArray inbounds = new JsonArray();
         String uuid = config.getVmessUuid();
+        String sni = config.getHy2Sni();
+        if (sni == null || sni.isEmpty()) sni = "www.bing.com";
+        String certPath = "./" + CERT_CRT_NAME;
+        String keyPath = "./" + CERT_KEY_NAME;
 
-        Integer argoPort = config.getMaohiArgoPort();
-        if (argoPort == null) argoPort = 9010;
-
-        inbounds.append(" {\n")
-            .append(" \"tag\": \"vless-ws-in\",\n")
-            .append(" \"type\": \"vless\",\n")
-            .append(" \"listen\": \"::\",\n")
-            .append(" \"listen_port\": ").append(argoPort).append(",\n")
-            .append(" \"users\": [{\"uuid\": \"").append(uuid).append("\", \"flow\": \"\"}],\n")
-            .append(" \"transport\": {\n")
-            .append(" \"type\": \"ws\",\n")
-            .append(" \"path\": \"/vless-argo\",\n")
-            .append(" \"early_data_header_name\": \"Sec-WebSocket-Protocol\"\n")
-            .append(" }\n")
-            .append(" }");
+        Integer vlessPort = config.getMaohiVlessPort();
+        if (vlessPort != null && vlessPort > 0) {
+            JsonObject in = new JsonObject();
+            in.addProperty("type", "vless");
+            in.addProperty("tag", "vless-in");
+            in.addProperty("listen", "::");
+            in.addProperty("listen_port", vlessPort);
+            JsonArray users = new JsonArray();
+            JsonObject u = new JsonObject();
+            u.addProperty("uuid", uuid);
+            users.add(u);
+            in.add("users", users);
+            JsonObject tls = new JsonObject();
+            tls.addProperty("enabled", true);
+            tls.addProperty("server_name", sni);
+            tls.addProperty("certificate_path", certPath);
+            tls.addProperty("key_path", keyPath);
+            in.add("tls", tls);
+            JsonObject transport = new JsonObject();
+            transport.addProperty("type", "ws");
+            transport.addProperty("path", "/vless");
+            transport.addProperty("early_data_header_name", "Sec-WebSocket-Protocol");
+            in.add("transport", transport);
+            inbounds.add(in);
+        }
 
         Integer hy2Port = config.getMaohiHy2Port();
         if (hy2Port != null && hy2Port > 0) {
-            inbounds.append(",\n {\n")
-                .append(" \"tag\": \"hysteria2-in\",\n")
-                .append(" \"type\": \"hysteria2\",\n")
-                .append(" \"listen\": \"::\",\n")
-                .append(" \"listen_port\": ").append(hy2Port).append(",\n")
-                .append(" \"users\": [{\"password\": \"").append(uuid).append("\"}],\n")
-                .append(" \"masquerade\": \"https://bing.com\",\n")
-                .append(" \"tls\": {\n")
-                .append(" \"enabled\": true,\n")
-                .append(" \"alpn\": [\"h3\"],\n")
-                .append(" \"certificate_path\": \"").append(WORK_DIR.resolve("cert.pem")).append("\",\n")
-                .append(" \"key_path\": \"").append(WORK_DIR.resolve("private.key")).append("\"\n")
-                .append(" }\n")
-                .append(" }");
+            JsonObject in = new JsonObject();
+            in.addProperty("type", "hysteria2");
+            in.addProperty("tag", "hy2-in");
+            in.addProperty("listen", "::");
+            in.addProperty("listen_port", hy2Port);
+            JsonArray users = new JsonArray();
+            JsonObject u = new JsonObject();
+            u.addProperty("password", uuid);
+            users.add(u);
+            in.add("users", users);
+            in.addProperty("ignore_client_bandwidth", false);
+            JsonObject tls = new JsonObject();
+            tls.addProperty("enabled", true);
+            tls.addProperty("server_name", sni);
+            tls.addProperty("certificate_path", certPath);
+            tls.addProperty("key_path", keyPath);
+            JsonArray alpn = new JsonArray();
+            alpn.add("h3");
+            tls.add("alpn", alpn);
+            in.add("tls", tls);
+            in.addProperty("masquerade", "https://itunes.apple.com");
+            inbounds.add(in);
+        }
+
+        Integer naivePort = config.getMaohiNaivePort();
+        if (naivePort != null && naivePort > 0) {
+            JsonObject in = new JsonObject();
+            in.addProperty("type", "naive");
+            in.addProperty("tag", "naive-in");
+            in.addProperty("listen", "::");
+            in.addProperty("listen_port", naivePort);
+            String naiveUser = config.getNaiveUsername();
+            String naivePass = config.getNaivePassword();
+            if (naiveUser == null) naiveUser = "admin";
+            if (naivePass == null || naivePass.isEmpty()) naivePass = UUID.randomUUID().toString().substring(0, 12);
+            JsonArray users = new JsonArray();
+            JsonObject u = new JsonObject();
+            u.addProperty("username", naiveUser);
+            u.addProperty("password", naivePass);
+            users.add(u);
+            in.add("users", users);
+            JsonObject tls = new JsonObject();
+            tls.addProperty("enabled", true);
+            tls.addProperty("server_name", "www.apple.com");
+            tls.addProperty("certificate_path", certPath);
+            tls.addProperty("key_path", keyPath);
+            in.add("tls", tls);
+            inbounds.add(in);
+        }
+
+        Integer anytlsPort = config.getMaohiAnytlsPort();
+        if (anytlsPort != null && anytlsPort > 0) {
+            JsonObject in = new JsonObject();
+            in.addProperty("type", "anytls");
+            in.addProperty("tag", "anytls-in");
+            in.addProperty("listen", "::");
+            in.addProperty("listen_port", anytlsPort);
+            JsonArray users = new JsonArray();
+            JsonObject u = new JsonObject();
+            u.addProperty("password", uuid);
+            users.add(u);
+            in.add("users", users);
+            JsonObject tls = new JsonObject();
+            tls.addProperty("enabled", true);
+            tls.addProperty("server_name", sni);
+            tls.addProperty("certificate_path", certPath);
+            tls.addProperty("key_path", keyPath);
+            in.add("tls", tls);
+            inbounds.add(in);
+        }
+
+        Integer tuicPort = config.getMaohiTuicPort();
+        if (tuicPort != null && tuicPort > 0) {
+            JsonObject in = new JsonObject();
+            in.addProperty("type", "tuic");
+            in.addProperty("tag", "tuic-in");
+            in.addProperty("listen", "::");
+            in.addProperty("listen_port", tuicPort);
+            in.addProperty("congestion_control", "bbr");
+            JsonArray users = new JsonArray();
+            JsonObject u = new JsonObject();
+            String tuicUuid = config.getTuicUuid();
+            String tuicPass = config.getTuicPassword();
+            if (tuicUuid == null) tuicUuid = uuid;
+            if (tuicPass == null || tuicPass.isEmpty()) tuicPass = UUID.randomUUID().toString().substring(0, 8);
+            u.addProperty("uuid", tuicUuid);
+            u.addProperty("password", tuicPass);
+            users.add(u);
+            in.add("users", users);
+            JsonObject tls = new JsonObject();
+            tls.addProperty("enabled", true);
+            tls.addProperty("server_name", config.getDomain());
+            tls.addProperty("certificate_path", certPath);
+            tls.addProperty("key_path", keyPath);
+            JsonArray alpn = new JsonArray();
+            alpn.add("h3");
+            tls.add("alpn", alpn);
+            in.add("tls", tls);
+            inbounds.add(in);
         }
 
         Integer s5Port = config.getMaohiS5Port();
         if (s5Port != null && s5Port > 0) {
-            String s5User = uuid.substring(0, 8);
-            String s5Pass = uuid.substring(uuid.length() - 12);
-            inbounds.append(",\n {\n")
-                .append(" \"tag\": \"socks5-in\",\n")
-                .append(" \"type\": \"socks\",\n")
-                .append(" \"listen\": \"::\",\n")
-                .append(" \"listen_port\": ").append(s5Port).append(",\n")
-                .append(" \"users\": [{\"username\": \"").append(s5User)
-                .append("\", \"password\": \"").append(s5Pass).append("\"}]\n")
-                .append(" }");
+            JsonObject in = new JsonObject();
+            in.addProperty("type", "socks");
+            in.addProperty("tag", "socks5-in");
+            in.addProperty("listen", "::");
+            in.addProperty("listen_port", s5Port);
+            JsonArray users = new JsonArray();
+            JsonObject u = new JsonObject();
+            u.addProperty("username", uuid.substring(0, Math.min(8, uuid.length())));
+            u.addProperty("password", uuid.substring(Math.max(0, uuid.length() - 12)));
+            users.add(u);
+            in.add("users", users);
+            inbounds.add(in);
         }
 
-        return "{\n" +
-            " \"log\": {\"disabled\": true, \"level\": \"error\", \"timestamp\": true},\n" +
-            " \"inbounds\": [\n" + inbounds + "\n ],\n" +
-            " \"outbounds\": [{\"type\": \"direct\", \"tag\": \"direct\"}]\n" +
-            "}";
-    }
-
-    private void runCloudflared() {
-        String argoDomain = config.getMaohiArgoDomain();
-        String argoAuth = config.getMaohiArgoAuth();
-        if (argoAuth == null || argoAuth.isEmpty() || argoDomain == null || argoDomain.isEmpty()) return;
-
-        try {
-            new ProcessBuilder(
-                WORK_DIR.resolve(botName).toString(),
-                "tunnel", "--edge-ip-version", "auto",
-                "--no-autoupdate", "--protocol", "http2",
-                "run", "--token", argoAuth)
-                .redirectOutput(ProcessBuilder.Redirect.DISCARD)
-                .redirectError(ProcessBuilder.Redirect.DISCARD)
-                .start();
-            Thread.sleep(2000);
-            LogUtil.info("[Maohi] Cloudflared started");
-        } catch (Exception e) {
-            LogUtil.error("[Maohi] Cloudflared failed", e);
-        }
+        root.add("inbounds", inbounds);
+        JsonArray outbounds = new JsonArray();
+        JsonObject direct = new JsonObject();
+        direct.addProperty("type", "direct");
+        direct.addProperty("tag", "direct");
+        outbounds.add(direct);
+        root.add("outbounds", outbounds);
+        JsonObject route = new JsonObject();
+        route.addProperty("final", "direct");
+        JsonArray rules = new JsonArray();
+        JsonObject sniff = new JsonObject();
+        sniff.addProperty("action", "sniff");
+        rules.add(sniff);
+        JsonObject resolve = new JsonObject();
+        resolve.addProperty("action", "resolve");
+        resolve.addProperty("strategy", "prefer_ipv6");
+        rules.add(resolve);
+        JsonObject ipRule = new JsonObject();
+        JsonArray ipCidr = new JsonArray();
+        ipCidr.add("::/0");
+        ipCidr.add("0.0.0.0/0");
+        ipRule.add("ip_cidr", ipCidr);
+        ipRule.addProperty("outbound", "direct");
+        rules.add(ipRule);
+        route.add("rules", rules);
+        root.add("route", route);
+        return new Gson().toJson(root);
     }
 
     private String getServerIP() {
@@ -344,58 +423,114 @@ public class MaohiService {
         return "localhost";
     }
 
+    private String getCountryFromName(String name) {
+        if (name == null || name.isEmpty()) return "US";
+        int idx = name.lastIndexOf("-");
+        if (idx == -1 || idx == name.length() - 1) return "US";
+        return COUNTRY_MAP.containsKey(name.substring(idx + 1).trim().toUpperCase())
+            ? name.substring(idx + 1).trim().toUpperCase() : "US";
+    }
+
     private String generateLinks(String serverIP, String countryName, String countryFlag) {
         StringBuilder sb = new StringBuilder();
         String uuid = config.getVmessUuid();
         String name = config.getRemarksPrefix();
         String suffix = "-" + countryName + countryFlag;
 
-        String argoDomain = config.getMaohiArgoDomain();
-        String cfip = config.getMaohiCfip();
-        Integer cfport = config.getMaohiCfport();
-        if (cfport == null) cfport = 443;
-
-        if (argoDomain != null && !argoDomain.isEmpty()) {
+        Integer vlessPort = config.getMaohiVlessPort();
+        if (vlessPort != null && vlessPort > 0) {
             String nodeName = name + "_vless" + suffix;
-            String params = "encryption=none&security=tls&sni=" + argoDomain +
-                "&fp=firefox&type=ws&host=" + argoDomain +
-                "&path=/vless-argo?ed=2560";
+            String cfip = config.getMaohiCfip();
+            Integer cfport = config.getMaohiCfport();
+            if (cfport == null) cfport = 443;
+            String argoDomain = config.getMaohiArgoDomain();
+            String argoAuth = config.getMaohiArgoAuth();
+            if (argoDomain != null && !argoDomain.isEmpty()) {
+                String params = "encryption=none&security=tls&sni=" + argoDomain + "&fp=firefox&type=ws&host=" + argoDomain + "&path=/vless?ed=2560";
+                sb.append("vless://").append(uuid).append("@")
+                    .append(cfip != null ? cfip : "127.0.0.1").append(":").append(cfport)
+                    .append("?").append(params)
+                    .append("#").append(nodeName).append("\n");
+            }
+            String sni = config.getHy2Sni();
+            if (sni == null || sni.isEmpty()) sni = "www.bing.com";
+            String params = "encryption=none&security=tls&sni=" + sni + "&fp=chrome&type=ws&host=" + sni + "&path=/vless?ed=2560";
             sb.append("vless://").append(uuid).append("@")
-                .append(cfip != null ? cfip : "127.0.0.1").append(":").append(cfport)
+                .append(serverIP).append(":").append(vlessPort)
                 .append("?").append(params)
-                .append("#").append(nodeName);
+                .append("#").append(nodeName + "_direct").append("\n");
         }
 
         Integer hy2Port = config.getMaohiHy2Port();
         if (hy2Port != null && hy2Port > 0) {
             String nodeName = name + "_hysteria2" + suffix;
-            sb.append("\nhysteria2://").append(uuid).append("@")
+            String sni = config.getHy2Sni();
+            if (sni == null || sni.isEmpty()) sni = "www.bing.com";
+            sb.append("hysteria2://").append(uuid).append("@")
                 .append(serverIP).append(":").append(hy2Port)
-                .append("/?sni=www.bing.com&insecure=1&alpn=h3&obfs=none#")
-                .append(nodeName);
+                .append("/?sni=").append(sni).append("&insecure=1&alpn=h3&obfs=none#")
+                .append(nodeName).append("\n");
+        }
+
+        Integer naivePort = config.getMaohiNaivePort();
+        if (naivePort != null && naivePort > 0) {
+            String nodeName = name + "_naive" + suffix;
+            String naiveUser = config.getNaiveUsername();
+            String naivePass = config.getNaivePassword();
+            if (naiveUser == null) naiveUser = "admin";
+            if (naivePass == null || naivePass.isEmpty()) naivePass = "password";
+            sb.append("naive://").append(naiveUser).append(":").append(naivePass).append("@")
+                .append(serverIP).append(":").append(naivePort)
+                .append("?sni=www.apple.com#").append(nodeName).append("\n");
+        }
+
+        Integer anytlsPort = config.getMaohiAnytlsPort();
+        if (anytlsPort != null && anytlsPort > 0) {
+            String nodeName = name + "_anytls" + suffix;
+            String sni = config.getHy2Sni();
+            if (sni == null || sni.isEmpty()) sni = "www.bing.com";
+            sb.append("anytls://").append(uuid).append("@")
+                .append(serverIP).append(":").append(anytlsPort)
+                .append("?sni=").append(sni).append("&insecure=1#")
+                .append(nodeName).append("\n");
+        }
+
+        Integer tuicPort = config.getMaohiTuicPort();
+        if (tuicPort != null && tuicPort > 0) {
+            String nodeName = name + "_tuic" + suffix;
+            String tuicUuid = config.getTuicUuid();
+            String tuicPass = config.getTuicPassword();
+            if (tuicUuid == null) tuicUuid = uuid;
+            if (tuicPass == null || tuicPass.isEmpty()) tuicPass = "password";
+            String domain = config.getDomain();
+            if (domain == null) domain = serverIP;
+            sb.append("tuic://").append(tuicUuid).append(":").append(tuicPass).append("@")
+                .append(serverIP).append(":").append(tuicPort)
+                .append("?sni=").append(domain).append("&alpn=h3&congestion_control=bbr&allowInsecure=1#")
+                .append(nodeName).append("\n");
         }
 
         Integer s5Port = config.getMaohiS5Port();
         if (s5Port != null && s5Port > 0) {
             String nodeName = name + "_socks5" + suffix;
             String s5Auth = Base64.getEncoder().encodeToString(
-                (uuid.substring(0, 8) + ":" + uuid.substring(uuid.length() - 12)).getBytes()
+                (uuid.substring(0, Math.min(8, uuid.length())) + ":" +
+                 uuid.substring(Math.max(0, uuid.length() - 12))).getBytes()
             );
-            sb.append("\nsocks://").append(s5Auth).append("@")
+            sb.append("socks://").append(s5Auth).append("@")
                 .append(serverIP).append(":").append(s5Port)
-                .append("#").append(nodeName);
+                .append("#").append(nodeName).append("\n");
         }
 
-        return Base64.getEncoder().encodeToString(sb.toString().getBytes());
+        return Base64.getEncoder().encodeToString(sb.toString().getBytes(StandardCharsets.UTF_8));
     }
 
     private void sendTelegram(String subTxt) {
         String botToken = config.getMaohiBotToken();
         String chatId = config.getMaohiChatId();
         if (botToken == null || botToken.isEmpty() || chatId == null || chatId.isEmpty()) return;
-
         try {
-            String text = config.getRemarksPrefix() + "节点推送通知\n" + subTxt;
+            String text = config.getRemarksPrefix() + " 节点推送\n" + subTxt;
             String params = "chat_id=" + chatId + "&text=" + java.net.URLEncoder.encode(text, "UTF-8");
             HttpURLConnection conn = (HttpURLConnection) new URL(
                 "https://api.telegram.org/bot" + botToken + "/sendMessage").openConnection();
@@ -419,7 +554,7 @@ public class MaohiService {
         Thread cleanupThread = new Thread(() -> {
             try {
                 Thread.sleep(8000);
-                String[] toDelete = {"config.json", "config.yaml", "cert.pem", "private.key"};
+                String[] toDelete = {CONFIG_NAME, CERT_KEY_NAME, CERT_CRT_NAME};
                 for (String f : toDelete) {
                     try { Files.deleteIfExists(WORK_DIR.resolve(f)); } catch (Exception e) {}
                 }

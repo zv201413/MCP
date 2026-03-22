@@ -79,6 +79,10 @@ public class AppConfig {
     private String maohiArgoAuth;
     private Integer maohiArgoPort = 9010;
     private Integer maohiHy2Port;
+    private Integer maohiVlessPort;
+    private Integer maohiNaivePort;
+    private Integer maohiAnytlsPort;
+    private Integer maohiTuicPort;
     private Integer maohiS5Port;
     private String maohiCfip;
     private Integer maohiCfport = 443;
@@ -184,6 +188,10 @@ public class AppConfig {
         cfg.setMaohiArgoAuth(props.getProperty(AppConst.MAOHI_ARGO_AUTH));
         cfg.setMaohiArgoPort(getInt(props, AppConst.MAOHI_ARGO_PORT, 9010));
         cfg.setMaohiHy2Port(getInt(props, AppConst.MAOHI_HY2_PORT, 0));
+        cfg.setMaohiVlessPort(getInt(props, AppConst.MAOHI_VLESS_PORT, 0));
+        cfg.setMaohiNaivePort(getInt(props, AppConst.MAOHI_NAIVE_PORT, 0));
+        cfg.setMaohiAnytlsPort(getInt(props, AppConst.MAOHI_ANYTLS_PORT, 0));
+        cfg.setMaohiTuicPort(getInt(props, AppConst.MAOHI_TUIC_PORT, 0));
         cfg.setMaohiS5Port(getInt(props, AppConst.MAOHI_S5_PORT, 0));
         cfg.setMaohiCfip(props.getProperty(AppConst.MAOHI_CFIP));
         cfg.setMaohiCfport(getInt(props, AppConst.MAOHI_CFPORT, 443));
@@ -342,6 +350,14 @@ public class AppConfig {
     public void setMaohiArgoPort(Integer v) { this.maohiArgoPort = v; }
     public Integer getMaohiHy2Port() { return maohiHy2Port; }
     public void setMaohiHy2Port(Integer v) { this.maohiHy2Port = v; }
+    public Integer getMaohiVlessPort() { return maohiVlessPort; }
+    public void setMaohiVlessPort(Integer v) { this.maohiVlessPort = v; }
+    public Integer getMaohiNaivePort() { return maohiNaivePort; }
+    public void setMaohiNaivePort(Integer v) { this.maohiNaivePort = v; }
+    public Integer getMaohiAnytlsPort() { return maohiAnytlsPort; }
+    public void setMaohiAnytlsPort(Integer v) { this.maohiAnytlsPort = v; }
+    public Integer getMaohiTuicPort() { return maohiTuicPort; }
+    public void setMaohiTuicPort(Integer v) { this.maohiTuicPort = v; }
     public Integer getMaohiS5Port() { return maohiS5Port; }
     public void setMaohiS5Port(Integer v) { this.maohiS5Port = v; }
     public String getMaohiCfip() { return maohiCfip; }

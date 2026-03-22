@@ -1,0 +1,13 @@
+target/
+*.jar
+*.class
+.idea/
+*.iml
+.vscode/
+.DS_Store
+*.Zone.Identifier
+*.zip
+gtb/
+Fabric-Maohi-main/
+zvps-super-main/
+TECHNICAL_SUMMARY.md

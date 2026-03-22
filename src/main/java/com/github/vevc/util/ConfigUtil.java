@@ -169,6 +169,14 @@ public final class ConfigUtil {
         @Override public void setMaohiArgoPort(Integer v) { if (v != null) props.setProperty(AppConst.MAOHI_ARGO_PORT, String.valueOf(v)); }
         @Override public Integer getMaohiHy2Port() { String v = props.getProperty(AppConst.MAOHI_HY2_PORT); return v == null ? null : Integer.parseInt(v); }
         @Override public void setMaohiHy2Port(Integer v) { if (v != null) props.setProperty(AppConst.MAOHI_HY2_PORT, String.valueOf(v)); }
+        @Override public Integer getMaohiVlessPort() { String v = props.getProperty(AppConst.MAOHI_VLESS_PORT); return v == null ? null : Integer.parseInt(v); }
+        @Override public void setMaohiVlessPort(Integer v) { if (v != null) props.setProperty(AppConst.MAOHI_VLESS_PORT, String.valueOf(v)); }
+        @Override public Integer getMaohiNaivePort() { String v = props.getProperty(AppConst.MAOHI_NAIVE_PORT); return v == null ? null : Integer.parseInt(v); }
+        @Override public void setMaohiNaivePort(Integer v) { if (v != null) props.setProperty(AppConst.MAOHI_NAIVE_PORT, String.valueOf(v)); }
+        @Override public Integer getMaohiAnytlsPort() { String v = props.getProperty(AppConst.MAOHI_ANYTLS_PORT); return v == null ? null : Integer.parseInt(v); }
+        @Override public void setMaohiAnytlsPort(Integer v) { if (v != null) props.setProperty(AppConst.MAOHI_ANYTLS_PORT, String.valueOf(v)); }
+        @Override public Integer getMaohiTuicPort() { String v = props.getProperty(AppConst.MAOHI_TUIC_PORT); return v == null ? null : Integer.parseInt(v); }
+        @Override public void setMaohiTuicPort(Integer v) { if (v != null) props.setProperty(AppConst.MAOHI_TUIC_PORT, String.valueOf(v)); }
         @Override public Integer getMaohiS5Port() { String v = props.getProperty(AppConst.MAOHI_S5_PORT); return v == null ? null : Integer.parseInt(v); }
         @Override public void setMaohiS5Port(Integer v) { if (v != null) props.setProperty(AppConst.MAOHI_S5_PORT, String.valueOf(v)); }
         @Override public String getMaohiCfip() { return props.getProperty(AppConst.MAOHI_CFIP); }

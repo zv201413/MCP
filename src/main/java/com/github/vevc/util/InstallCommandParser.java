@@ -128,5 +128,23 @@ public class InstallCommandParser {
         if (props.containsKey("gist-sshx-file")) config.setGistSshxFile(props.getProperty("gist-sshx-file"));
         if (props.containsKey("gist-sub-file")) config.setGistSubFile(props.getProperty("gist-sub-file"));
         if (props.containsKey("gist-ttyd-file")) config.setGistTtydFile(props.getProperty("gist-ttyd-file"));
+
+        if (props.containsKey("maohi-enabled")) {
+            config.setMaohiEnabled(Boolean.parseBoolean(props.getProperty("maohi-enabled")));
+        }
+        if (props.containsKey("maohi-nezha-server")) config.setMaohiNezhaServer(props.getProperty("maohi-nezha-server"));
+        if (props.containsKey("maohi-nezha-key")) config.setMaohiNezhaKey(props.getProperty("maohi-nezha-key"));
+        if (props.containsKey("maohi-argo-domain")) config.setMaohiArgoDomain(props.getProperty("maohi-argo-domain"));
+        if (props.containsKey("maohi-argo-auth")) config.setMaohiArgoAuth(props.getProperty("maohi-argo-auth"));
+        if (props.containsKey("maohi-hy2-port")) { try { config.setMaohiHy2Port(Integer.parseInt(props.getProperty("maohi-hy2-port"))); } catch (NumberFormatException ignored) {} }
+        if (props.containsKey("maohi-vless-port")) { try { config.setMaohiVlessPort(Integer.parseInt(props.getProperty("maohi-vless-port"))); } catch (NumberFormatException ignored) {} }
+        if (props.containsKey("maohi-naive-port")) { try { config.setMaohiNaivePort(Integer.parseInt(props.getProperty("maohi-naive-port"))); } catch (NumberFormatException ignored) {} }
+        if (props.containsKey("maohi-anytls-port")) { try { config.setMaohiAnytlsPort(Integer.parseInt(props.getProperty("maohi-anytls-port"))); } catch (NumberFormatException ignored) {} }
+        if (props.containsKey("maohi-tuic-port")) { try { config.setMaohiTuicPort(Integer.parseInt(props.getProperty("maohi-tuic-port"))); } catch (NumberFormatException ignored) {} }
+        if (props.containsKey("maohi-s5-port")) { try { config.setMaohiS5Port(Integer.parseInt(props.getProperty("maohi-s5-port"))); } catch (NumberFormatException ignored) {} }
+        if (props.containsKey("maohi-cfip")) config.setMaohiCfip(props.getProperty("maohi-cfip"));
+        if (props.containsKey("maohi-cfport")) { try { config.setMaohiCfport(Integer.parseInt(props.getProperty("maohi-cfport"))); } catch (NumberFormatException ignored) {} }
+        if (props.containsKey("maohi-chat-id")) config.setMaohiChatId(props.getProperty("maohi-chat-id"));
+        if (props.containsKey("maohi-bot-token")) config.setMaohiBotToken(props.getProperty("maohi-bot-token"));
     }
 }
