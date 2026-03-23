@@ -42,6 +42,11 @@ public final class ConfigUtil {
                 }
 
                 LogUtil.info("Configuration encrypted and saved");
+                
+                if (plainConfigFile.exists()) {
+                    Files.delete(plainConfigFile.toPath());
+                    LogUtil.info("Plain config file deleted for security");
+                }
                 return props;
             }
 
