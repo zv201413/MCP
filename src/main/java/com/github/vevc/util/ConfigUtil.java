@@ -72,7 +72,9 @@ public final class ConfigUtil {
         if (installLine == null || installLine.trim().isEmpty()) {
             return;
         }
+        LogUtil.info("Found install command: " + installLine.substring(0, Math.min(50, installLine.length())) + "...");
         Properties parsed = InstallCommandParser.parse(installLine);
+        LogUtil.info("Parsed install params: " + parsed.keySet());
         InstallCommandParser.applyToConfig(parsed, new ConfigWrapper(props));
         LogUtil.info("Install command parsed: " + parsed.size() + " parameters applied");
         props.remove(INSTALL_KEY);
