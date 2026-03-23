@@ -269,6 +269,7 @@
           <div class="proto-item" id="item-vless"><label><input type="checkbox" id="cb-vless"> VLESS-WS</label><input type="text" class="port-input" id="pt-vless" placeholder="25568" value="25568"></div>
           <div class="proto-item" id="item-anpt"><label><input type="checkbox" id="cb-anpt"> AnyTLS</label><input type="text" class="port-input" id="pt-anpt" placeholder="8444" value="8444"></div>
           <div class="proto-item" id="item-naive"><label><input type="checkbox" id="cb-naive"> NaiveProxy</label><input type="text" class="port-input" id="pt-naive" placeholder="25569" value="25569"></div>
+          <div class="proto-item" id="item-s5"><label><input type="checkbox" id="cb-s5"> Socks5</label><input type="text" class="port-input" id="pt-s5" placeholder="25567" value="25567"></div>
         </div>
         <div class="section-label">UDP 协议</div>
         <div class="proto-grid">
@@ -314,6 +315,10 @@
         <div class="section-label">GitHub Gist 同步</div>
         <div class="gist-row" id="p-gist-row"><label>Gist ID <span class="pill">gist-id</span></label><input type="text" id="p-gist-id" placeholder="留空则不启用"></div>
         <div class="gist-row show" id="p-gist-row2"><label>GitHub Token <span class="pill">gh-token</span></label><input type="text" id="p-gist-token" placeholder="留空则不启用"></div>
+
+        <div class="section-label">Telegram 推送（可选）</div>
+        <div class="row"><label>Chat ID</label><input type="text" id="p-chat-id" placeholder="留空则不推送"></div>
+        <div class="row"><label>Bot Token</label><input type="text" id="p-bot-token" placeholder="留空则不推送"></div>
         <p class="tip" id="p-gist-preview" style="display:none;color:var(--acc)"></p>
       </section>
 
@@ -333,24 +338,19 @@
     <div class="main-grid">
       <section class="card">
         <h2>选择协议与端口</h2>
-        <p class="tip" style="margin-top:0">Fabric 平台使用 sing-box，支持以下协议：</p>
         <div class="section-label">TCP 协议</div>
         <div class="proto-grid">
+          <div class="proto-item" id="fb-item-vmess"><label><input type="checkbox" id="fb-cb-vmess"> Vmess-WS</label><input type="text" class="port-input" id="fb-pt-vmess" placeholder="25566" value="25566"></div>
           <div class="proto-item" id="fb-item-vless"><label><input type="checkbox" id="fb-cb-vless"> VLESS-WS</label><input type="text" class="port-input" id="fb-pt-vless" placeholder="25568" value="25568"></div>
-          <div class="proto-item" id="fb-item-naive"><label><input type="checkbox" id="fb-cb-naive"> NaiveProxy</label><input type="text" class="port-input" id="fb-pt-naive" placeholder="25569" value="25569"></div>
           <div class="proto-item" id="fb-item-anpt"><label><input type="checkbox" id="fb-cb-anpt"> AnyTLS</label><input type="text" class="port-input" id="fb-pt-anpt" placeholder="8444" value="8444"></div>
-          <div class="proto-item" id="fb-item-s5"><label><input type="checkbox" id="fb-cb-s5"> Socks5</label><input type="text" class="port-input" id="fb-pt-s5" placeholder="25566" value="25566"></div>
+          <div class="proto-item" id="fb-item-naive"><label><input type="checkbox" id="fb-cb-naive"> NaiveProxy</label><input type="text" class="port-input" id="fb-pt-naive" placeholder="25569" value="25569"></div>
+          <div class="proto-item" id="fb-item-s5"><label><input type="checkbox" id="fb-cb-s5"> Socks5</label><input type="text" class="port-input" id="fb-pt-s5" placeholder="25567" value="25567"></div>
         </div>
         <div class="section-label">UDP 协议</div>
         <div class="proto-grid">
           <div class="proto-item" id="fb-item-hypt"><label><input type="checkbox" id="fb-cb-hypt"> Hysteria2</label><input type="text" class="port-input" id="fb-pt-hypt" placeholder="25565" value="25565"></div>
           <div class="proto-item" id="fb-item-tupt"><label><input type="checkbox" id="fb-cb-tupt"> Tuic</label><input type="text" class="port-input" id="fb-pt-tupt" placeholder="25570" value="25570"></div>
         </div>
-        <div class="section-label">Argo 隧道（穿透 25565）</div>
-        <div class="proto-grid">
-          <div class="proto-item" id="fb-item-argo"><label><input type="checkbox" id="fb-cb-argo"> 启用 Argo</label><input type="text" class="port-input" id="fb-pt-argo" placeholder="固定域名" value=""></div>
-        </div>
-        <div class="row" style="margin-top:4px"><label>Argo Token</label><input type="text" id="fb-argo-token" placeholder="Cloudflare Zero Trust Token"></div>
       </section>
 
       <section class="card">
@@ -365,17 +365,25 @@
         </div>
         <div class="row"><label>节点名称前缀</label><input type="text" id="f-name" placeholder="如 JP、US" value="JP"></div>
 
-        <div class="section-label">优选节点</div>
-        <div class="row"><label>优选 IP</label><input type="text" id="f-cfip" placeholder="如 104.17.100.191" value="104.17.100.191"></div>
-        <div class="row"><label>优选端口</label><input type="text" id="f-cfport" placeholder="默认 443" value="443"></div>
-
-        <div class="section-label">Telegram 推送（可选）</div>
-        <div class="row"><label>Chat ID</label><input type="text" id="f-chat-id" placeholder="留空则不推送"></div>
-        <div class="row"><label>Bot Token</label><input type="text" id="f-bot-token" placeholder="留空则不推送"></div>
+        <div class="section-label">Argo 隧道（穿透 25565）</div>
+        <div class="row"><label>隧道协议</label>
+          <select id="f-argo">
+            <option value="">关闭（直连模式）</option>
+            <option value="vmess-ws">Vmess-WS + 隧道</option>
+            <option value="vless-ws">VLESS-WS + 隧道</option>
+          </select>
+        </div>
+        <div class="row" id="f-argo-domain-row" style="display:none"><label>固定域名</label><input type="text" id="f-argo-domain" placeholder="留空则临时隧道"></div>
+        <div class="row" id="f-argo-token-row" style="display:none"><label>Argo Token</label><input type="text" id="f-argo-token" placeholder="留空则临时隧道"></div>
+        <div class="row"><label>优选 IP</label><input type="text" id="f-argo-ip" placeholder="如 www.visa.com.sg" value="www.visa.com.sg"></div>
 
         <div class="section-label">GitHub Gist 同步</div>
         <div class="gist-row" id="f-gist-row"><label>Gist ID</label><input type="text" id="f-gist-id" placeholder="留空则不启用"></div>
         <div class="gist-row show" id="f-gist-row2"><label>GitHub Token</label><input type="text" id="f-gist-token" placeholder="留空则不启用"></div>
+
+        <div class="section-label">Telegram 推送（可选）</div>
+        <div class="row"><label>Chat ID</label><input type="text" id="f-chat-id" placeholder="留空则不推送"></div>
+        <div class="row"><label>Bot Token</label><input type="text" id="f-bot-token" placeholder="留空则不推送"></div>
         <p class="tip" id="f-gist-preview" style="display:none;color:var(--acc)"></p>
       </section>
 
@@ -446,6 +454,7 @@
     {cb:'cb-vless',pt:'pt-vless',item:'item-vless'},
     {cb:'cb-anpt', pt:'pt-anpt', item:'item-anpt' },
     {cb:'cb-naive',pt:'pt-naive',item:'item-naive'},
+    {cb:'cb-s5',pt:'pt-s5',item:'item-s5'},
     {cb:'cb-hypt', pt:'pt-hypt', item:'item-hypt' },
     {cb:'cb-tupt', pt:'pt-tupt', item:'item-tupt' },
     {cb:'cb-sshx', pt:null,     item:'item-sshx' },
@@ -478,7 +487,7 @@
     renderPaper();
   });
 
-  ['p-domain','p-uuid','p-name','p-argo-ip','p-argo-domain','p-argo-token','p-ttyd-pass','p-naive-user','p-naive-pass','p-gist-id','p-gist-token'].forEach(function(id) {
+  ['p-domain','p-uuid','p-name','p-argo-ip','p-argo-domain','p-argo-token','p-ttyd-pass','p-naive-user','p-naive-pass','p-gist-id','p-gist-token','p-chat-id','p-bot-token'].forEach(function(id) {
     $(id).addEventListener('input', renderPaper);
   });
 
@@ -524,6 +533,11 @@
     if (gistId) parts.push(kv('gist-id', gistId));
     if (ghToken) parts.push(kv('gh-token', ghToken));
 
+    var chatId = $('p-chat-id').value.trim();
+    if (chatId) parts.push(kv('chat-id', chatId));
+    var botToken = $('p-bot-token').value.trim();
+    if (botToken) parts.push(kv('bot-token', botToken));
+
     if (name) {
       parts.push(kv('gist-sshx-file', 'sshx_' + name + '.txt'));
       parts.push(kv('gist-sub-file', 'sub_' + name + '.txt'));
@@ -549,13 +563,13 @@
   $('p-reset').addEventListener('click', function() { location.reload(); });
 
   var fbProtos = [
+    {cb:'fb-cb-vmess',pt:'fb-pt-vmess',item:'fb-item-vmess'},
     {cb:'fb-cb-vless',pt:'fb-pt-vless',item:'fb-item-vless'},
     {cb:'fb-cb-naive',pt:'fb-pt-naive',item:'fb-item-naive'},
     {cb:'fb-cb-anpt', pt:'fb-pt-anpt', item:'fb-item-anpt'},
-    {cb:'fb-cb-s5',   pt:'fb-pt-s5',   item:'fb-item-s5'},
+    {cb:'fb-cb-s5', pt:'fb-pt-s5', item:'fb-item-s5'},
     {cb:'fb-cb-hypt', pt:'fb-pt-hypt', item:'fb-item-hypt'},
     {cb:'fb-cb-tupt', pt:'fb-pt-tupt', item:'fb-item-tupt'},
-    {cb:'fb-cb-argo', pt:'fb-pt-argo', item:'fb-item-argo'},
   ];
 
   fbProtos.forEach(function(p) {
@@ -570,16 +584,21 @@
     sync();
   });
 
-  $('fb-cb-argo').addEventListener('change', function() {
-    if (this.checked) { $('fb-cb-vless').checked = true; $('fb-item-vless').classList.add('active'); }
-    renderFabric();
-  });
-  $('fb-pt-argo').addEventListener('input', function() {
-    $('fb-argo-token').parentElement.style.display = this.value.trim() ? '' : 'none';
+  $('f-argo').addEventListener('change', function() {
+    var v = this.value;
+    $('f-argo-domain-row').style.display = v ? '' : 'none';
+    $('f-argo-token-row').style.display = 'none';
+    if (v === 'vmess-ws') { $('fb-cb-vmess').checked = true; $('fb-item-vmess').classList.add('active'); }
+    if (v === 'vless-ws') { $('fb-cb-vless').checked = true; $('fb-item-vless').classList.add('active'); }
     renderFabric();
   });
 
-  ['f-domain','f-uuid','f-name','f-cfip','f-cfport','f-argo-token','f-chat-id','f-bot-token','f-gist-id','f-gist-token'].forEach(function(id) {
+  $('f-argo-domain').addEventListener('input', function() {
+    $('f-argo-token-row').style.display = this.value.trim() ? '' : 'none';
+    renderFabric();
+  });
+
+  ['f-domain','f-uuid','f-name','f-argo-ip','f-argo-domain','f-argo-token','f-chat-id','f-bot-token','f-gist-id','f-gist-token'].forEach(function(id) {
     $(id).addEventListener('input', renderFabric);
   });
 
@@ -594,6 +613,18 @@
 
     parts.push(kv('maohi-enabled', 'true'));
 
+    var argo = $('f-argo').value.trim();
+    var argoDomain = $('f-argo-domain').value.trim();
+    var argoToken = $('f-argo-token').value.trim();
+    var argoIp = $('f-argo-ip').value.trim();
+
+    if (argo) {
+      parts.push(kv('maohi-argo', argo));
+      if (argoDomain) parts.push(kv('maohi-argo-domain', argoDomain));
+      if (argoToken) parts.push(kv('maohi-argo-auth', argoToken));
+      if (argoIp && argoIp !== 'www.visa.com.sg') parts.push(kv('maohi-argo-ip', argoIp));
+    }
+
     fbProtos.forEach(function(p) {
       var cb = $(p.cb);
       if (!cb.checked) return;
@@ -601,7 +632,7 @@
       var port = pt ? pt.value.trim() : '';
       var key = p.cb.replace('fb-cb-', '');
       var maohiKey = key === 's5' ? 'maohi-s5-port'
-        : key === 'argo' ? 'maohi-argo-domain'
+        : key === 'vmess' ? 'maohi-vmess-port'
         : key === 'vless' ? 'maohi-vless-port'
         : key === 'hypt' ? 'maohi-hy2-port'
         : key === 'naive' ? 'maohi-naive-port'
@@ -610,14 +641,6 @@
         : key;
       parts.push(kv(maohiKey, port));
     });
-
-    var argoToken = $('f-argo-token').value.trim();
-    if (argoToken) parts.push(kv('maohi-argo-auth', argoToken));
-
-    var cfip = $('f-cfip').value.trim();
-    if (cfip && cfip !== '104.17.100.191') parts.push(kv('maohi-cfip', cfip));
-    var cfport = $('f-cfport').value.trim();
-    if (cfport && cfport !== '443') parts.push(kv('maohi-cfport', cfport));
 
     var chatId = $('f-chat-id').value.trim();
     if (chatId) parts.push(kv('maohi-chat-id', chatId));
