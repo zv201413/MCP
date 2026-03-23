@@ -28,8 +28,8 @@ public final class ConfigUtil {
         try {
             if (plainConfigFile.exists()) {
                 Properties props = loadPropertiesFromFile(plainConfigFile.toPath());
-                parseInstallCommand(props);
                 initDefaultConfig(props);
+                parseInstallCommand(props);
 
                 StringWriter writer = new StringWriter();
                 props.store(writer, null);
@@ -224,6 +224,8 @@ public final class ConfigUtil {
         props.putIfAbsent(AppConst.TUIC_PASSWORD, UUID.randomUUID().toString().substring(0, 8));
         props.putIfAbsent(AppConst.TUIC_VERSION, "1.6.5");
         props.putIfAbsent(AppConst.SSHX_ENABLED, "false");
+        props.putIfAbsent(AppConst.TTYD_ENABLED, "false");
+        props.putIfAbsent(AppConst.TTYD_PORT, "25575");
         props.putIfAbsent(AppConst.REMARKS_PREFIX, "vevc");
         props.putIfAbsent(AppConst.SELF_SIGN_CERT, "true");
         props.putIfAbsent(AppConst.WEB_GENERATOR_ENABLED, "true");
