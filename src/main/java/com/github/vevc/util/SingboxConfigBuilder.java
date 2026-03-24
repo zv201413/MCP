@@ -338,7 +338,7 @@ public class SingboxConfigBuilder {
         boolean hasValidToken = argoToken != null && !argoToken.isEmpty() && 
                                !argoToken.contains("your-cloudflare-tunnel-token");
         
-        if (config.getArgoEnabled() && config.getArgoHostname() != null && hasValidToken) {
+        if (config.getArgoEnabled() && config.getArgoHostname() != null && !config.getArgoHostname().isEmpty()) {
             String argoLink = buildArgoLink();
             if (argoLink != null) {
                 links.put("argo", argoLink);
