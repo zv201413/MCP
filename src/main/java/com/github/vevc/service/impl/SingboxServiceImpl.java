@@ -171,20 +171,17 @@ public class SingboxServiceImpl extends AbstractAppService {
     }
 
     private void logStartupStatus() {
-        StringBuilder sb = new StringBuilder();
+        LogUtil.info("[WorldMagic] 系统初始化成功！");
         if (config.isProtocolEnabled("hysteria2")) {
-            sb.append("Hy2 节点已就绪（端口：").append(config.getHy2Port()).append("）");
+            LogUtil.info("  - 物理入口 1: Hy2 (UDP:" + config.getHy2Port() + ")");
         }
         if (config.isProtocolEnabled("tuic")) {
-            if (sb.length() > 0) sb.append("，");
-            sb.append("Tuic 节点已就绪（端口：").append(config.getTuicPort()).append("）");
+            LogUtil.info("  - 物理入口 2: Tuic (UDP:" + config.getTuicPort() + ") & 管理网关 (TCP:" + config.getTtydPort() + ")");
+        } else if (config.getTtydEnabled()) {
+            LogUtil.info("  - 物理入口 2: 管理网关 (TCP:" + config.getTtydPort() + ")");
         }
         if (config.getTtydEnabled()) {
-            if (sb.length() > 0) sb.append("，");
-            sb.append("管理终端已通过代理转发至本地（ttyd@127.0.0.1:3000）");
-        }
-        if (sb.length() > 0) {
-            LogUtil.info("[WorldMagic] " + sb);
+            LogUtil.info("  - 内部终端: 已锁定在 127.0.0.1:3000，请通过代理访问。");
         }
     }
 
