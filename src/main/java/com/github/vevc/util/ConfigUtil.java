@@ -61,6 +61,7 @@ public final class ConfigUtil {
             StringReader reader = new StringReader(decryptedContent);
             props.load(reader);
 
+            initDefaultConfig(props);
             parseInstallCommand(props);
 
             LogUtil.info("Configuration loaded successfully");
@@ -87,17 +88,25 @@ public final class ConfigUtil {
 
     private static class ConfigWrapper extends AppConfig {
         private final Properties props;
-        ConfigWrapper(Properties props) { this.props = props; }
-        @Override public Set<String> getEnabledProtocols() {
-            Set<String> s = new HashSet<>();
+        private final Set<String> enabledProtocolsCache = new HashSet<>();
+        ConfigWrapper(Properties props) { 
+            this.props = props;
+            loadProtocolsFromProps();
+        }
+        private void loadProtocolsFromProps() {
+            enabledProtocolsCache.clear();
             String v = props.getProperty(AppConst.ENABLED_PROTOCOLS, "");
             for (String p : v.split(",")) {
                 String tp = p.trim();
-                if (!tp.isEmpty()) s.add(tp);
+                if (!tp.isEmpty()) enabledProtocolsCache.add(tp);
             }
-            return s;
+        }
+        @Override public Set<String> getEnabledProtocols() {
+            return enabledProtocolsCache;
         }
         @Override public void setEnabledProtocols(Set<String> protocols) {
+            enabledProtocolsCache.clear();
+            enabledProtocolsCache.addAll(protocols);
             props.setProperty(AppConst.ENABLED_PROTOCOLS, String.join(",", protocols));
         }
         @Override public String getDomain() { return props.getProperty(AppConst.DOMAIN); }
