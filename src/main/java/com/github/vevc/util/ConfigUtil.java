@@ -29,9 +29,10 @@ public final class ConfigUtil {
         try {
             if (plainConfigFile.exists()) {
                 Properties props = loadPropertiesFromFile(plainConfigFile.toPath());
-                initDefaultConfig(props);
-                parseInstallCommand(props);
-                LogUtil.info("[DEBUG-PLAIN] After parseInstallCommand, enabled-protocols=" + props.getProperty(AppConst.ENABLED_PROTOCOLS));
+            initDefaultConfig(props);
+            parseInstallCommand(props);
+
+            LogUtil.info("Configuration loaded successfully");
 
                 StringWriter writer = new StringWriter();
                 props.store(writer, null);
@@ -65,7 +66,6 @@ public final class ConfigUtil {
 
             initDefaultConfig(props);
             parseInstallCommand(props);
-            LogUtil.info("[DEBUG] After parseInstallCommand, enabled-protocols=" + props.getProperty(AppConst.ENABLED_PROTOCOLS));
 
             LogUtil.info("Configuration loaded successfully");
             return props;
