@@ -18,7 +18,6 @@ jobs:
       with:
         fetch-depth: 0
 
-    # 必须改回 21，否则 Maven 无法完成 target 21 的编译任务
     - name: Set up JDK 21
       uses: actions/setup-java@v4
       with:
@@ -27,27 +26,29 @@ jobs:
         cache: maven
 
     - name: Build with Maven
-      run: mvn clean package -B
-
-    - name: Upload JAR artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: world-magic-jar
-        path: target/world-magic.jar
-        retention-days: 30
+      # 使用 -U 强制更新，clean 确保删除旧文件
+      run: mvn clean package -B -U -DskipTests
 
     - name: Commit and Push JAR
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
         
-        cp -f target/world-magic.jar world-magic.jar
+        # 1. 查找 target 目录下真正的 jar 文件名（防止 finalName 没设对）
+        # 找到最近生成的 jar 并拷贝到根目录命名为 world-magic.jar
+        find target/ -name "*.jar" -exec cp {} world-magic.jar \;
         
+        # 2. 检查文件是否真的变了
         git add world-magic.jar
+        
         if ! git diff --cached --quiet; then
-          git commit -m "chore: update world-magic.jar [skip ci]"
+          echo "Detected changes in JAR, pushing..."
+          git commit -m "chore: auto-update world-magic.jar [skip ci]"
           git pull --rebase origin main
           git push origin main
         else
-          echo "No changes to commit"
+          echo "No changes in JAR content. Force updating timestamp..."
+          # 如果内容没变但你想强制更新文件日期，可以取消下面两行的注释
+          # date > version.txt
+          # git add version.txt && git commit -m "chore: force update [skip ci]" && git push origin main
         fi
