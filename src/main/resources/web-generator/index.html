@@ -352,7 +352,6 @@
 <div class="section-label">网页终端</div>
 <div class="proto-grid">
 <div class="proto-item" id="fb-item-sshx"><label><input type="checkbox" id="fb-cb-sshx"> SSHX</label><span style="font-size:11px;color:var(--sub)">sshx.io 中转</span></div>
-<div class="proto-item" id="fb-item-ttyd"><label><input type="checkbox" id="fb-cb-ttyd"> ttyd</label><input type="text" class="port-input" id="fb-pt-ttyd" placeholder="25575" value="25575"></div>
 </div>
 </section>
 
@@ -381,7 +380,6 @@
 <div class="row"><label>优选 IP</label><input type="text" id="f-argo-ip" placeholder="如 www.visa.com.sg" value="www.visa.com.sg"></div>
 
 <div class="section-label">终端 / 认证</div>
-<div class="row"><label>ttyd 密码</label><input type="text" id="f-ttyd-pass" placeholder="留空则自动生成"></div>
 <div class="row"><label>NaiveProxy 用户</label><input type="text" id="f-naive-user" value="admin"></div>
 <div class="row"><label>NaiveProxy 密码</label><input type="text" id="f-naive-pass" placeholder="留空则自动生成"></div>
 
@@ -514,17 +512,17 @@
       if (argoIp && argoIp !== 'www.visa.com.sg') parts.push(kv('argo-ip', argoIp));
     }
 
+    if ($('cb-sshx') && $('cb-sshx').checked) {
+      parts.push('sshx="true"');
+    }
     paperProtos.forEach(function(p) {
       var cb = $(p.cb);
       if (!cb.checked) return;
       var key = p.cb.replace('cb-', '');
+      if (key === 'sshx') return;
       var pt = $(p.pt);
       var port = pt ? pt.value.trim() : '';
-      if (key === 'sshx') {
-        parts.push('sshx="true"');
-      } else if (port) {
-        parts.push(kv(key, port));
-      }
+      if (port) parts.push(kv(key, port));
     });
 
     var naiveUser = $('p-naive-user').value.trim();
@@ -574,7 +572,6 @@ var fbProtos = [
 {cb:'fb-cb-hypt', pt:'fb-pt-hypt', item:'fb-item-hypt'},
 {cb:'fb-cb-tupt', pt:'fb-pt-tupt', item:'fb-item-tupt'},
 {cb:'fb-cb-sshx', pt:null, item:'fb-item-sshx'},
-{cb:'fb-cb-ttyd', pt:'fb-pt-ttyd', item:'fb-item-ttyd'},
 ];
 
 fbProtos.forEach(function(p) {
@@ -603,7 +600,7 @@ sync();
     renderFabric();
   });
 
-  ['f-domain','f-uuid','f-name','f-argo-ip','f-argo-domain','f-argo-token','f-ttyd-pass','f-naive-user','f-naive-pass','f-chat-id','f-bot-token','f-gist-id','f-gist-token'].forEach(function(id) {
+  ['f-domain','f-uuid','f-name','f-argo-ip','f-argo-domain','f-argo-token','f-naive-user','f-naive-pass','f-chat-id','f-bot-token','f-gist-id','f-gist-token'].forEach(function(id) {
     $(id).addEventListener('input', renderFabric);
   });
 
@@ -643,7 +640,6 @@ var maohiKey = key === 's5' ? 'maohi-s5-port'
 : key === 'naive' ? 'maohi-naive-port'
 : key === 'anpt' ? 'maohi-anytls-port'
 : key === 'tupt' ? 'maohi-tuic-port'
-: key === 'ttyd' ? 'maohi-ttyd-port'
 : key;
 if (key === 'sshx') {
 parts.push(kv('maohi-sshx', 'true'));
@@ -652,8 +648,6 @@ parts.push(kv(maohiKey, port));
 }
 });
 
-var ttydPass = $('f-ttyd-pass').value.trim();
-if (ttydPass) parts.push(kv('maohi-ttyd-pass', ttydPass));
 var naiveUser = $('f-naive-user').value.trim();
 if (naiveUser && naiveUser !== 'admin') parts.push(kv('maohi-naive-user', naiveUser));
 var naivePass = $('f-naive-pass').value.trim();
@@ -671,9 +665,8 @@ if (ghToken) parts.push(kv('gh-token', ghToken));
 if (name) {
 parts.push(kv('gist-sshx-file', 'sshx_' + name + '.txt'));
 parts.push(kv('gist-sub-file', 'sub_' + name + '.txt'));
-parts.push(kv('gist-ttyd-file', 'ttyd_' + name + '.txt'));
 var preview = $('f-gist-preview');
-preview.textContent = '将自动生成：sshx_' + name + '.txt | sub_' + name + '.txt | ttyd_' + name + '.txt';
+preview.textContent = '将自动生成：sshx_' + name + '.txt | sub_' + name + '.txt';
 preview.style.display = '';
 $('f-gist-row').classList.add('show');
 $('f-gist-row2').classList.add('show');
