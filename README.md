@@ -206,6 +206,93 @@ remarks-prefix=JP
 self-sign-cert=true
 ```
 
+---
+
+## Fabric 平台编译说明
+
+本项目支持 PaperMC 和 Fabric 双平台，以下是 Fabric 平台的编译方法。
+
+### 方式一：GitHub Actions 自动编译（推荐）
+
+1. Fork 本项目
+2. 在仓库 Settings -> Secrets and variables -> Actions 添加以下 Secrets：
+   - `CONFIG`: JSON 格式配置（见下方）
+3. 在 Actions 页面手动触发 workflow
+4. 等待编译完成后，在 Releases 页面下载 Fabric 版本
+
+CONFIG JSON 格式：
+```json
+{
+  "UUID": "你的UUID",
+  "ARGO_DOMAIN": "your-domain.trycloudflare.com",
+  "ARGO_AUTH": "your-argo-token",
+  "ARGO_PORT": "9010",
+  "HY2_PORT": "25565",
+  "S5_PORT": "25566",
+  "CFIP": "www.visa.com.sg",
+  "CFPORT": "443",
+  "NAME": "JP",
+  "CHAT_ID": "123456789",
+  "BOT_TOKEN": "your-bot-token"
+}
+```
+
+### 方式二：本地 Gradle 编译
+
+1. 确保已安装 JDK 21
+2. 进入项目目录：
+   ```bash
+   cd PaperMC_WorldMagic
+   ```
+
+3. 运行 Gradle 编译：
+   ```bash
+   ./gradlew build
+   ```
+
+4. 编译完成后，在 `build/libs/` 目录下找到：
+   - `world-magic-x.x.x.jar` - 通用版本
+   - `world-magic-x.x.x-paper.jar` - PaperMC 版本
+   - `world-magic-x.x.x-fabric.jar` - Fabric 版本
+
+### Fabric 服务器部署
+
+1. 将编译好的 JAR 文件上传到服务器的 `mods/` 目录：
+   ```
+   游戏服务器根目录/
+   └── mods/
+       └── world-magic.jar
+   ```
+
+2. 在 `config/` 目录创建 `maohi.properties` 配置文件：
+   ```properties
+   UUID=你的UUID
+   HY2_PORT=25565
+   S5_PORT=25566
+   NAME=JP
+   ```
+
+3. 重启服务器即可自动启动代理服务
+
+### Fabric 参数说明
+
+| 参数 | 说明 | 示例 |
+|------|------|------|
+| UUID | VLESS/SSH 认证 UUID | xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx |
+| ARGO_DOMAIN | Argo 隧道域名 | your-domain.trycloudflare.com |
+| ARGO_AUTH | Argo Token | xxxx |
+| ARGO_PORT | Argo 监听端口 | 9010 |
+| HY2_PORT | Hysteria2 端口 | 25565 |
+| S5_PORT | Socks5 端口 | 25566 |
+| CFIP | 优选 IP/域名 | www.visa.com.sg |
+| CFPORT | 优选端口 | 443 |
+| NAME | 节点名称前缀 | JP |
+| CHAT_ID | Telegram Chat ID | 123456789 |
+| BOT_TOKEN | Telegram Bot Token | xxxx |
+
+---
+
+## 特别鸣谢
 ## 🤝 特别鸣谢
 
 本项目在开发过程中参考并借鉴了以下优秀项目及文章，感谢原作者的无私分享：
