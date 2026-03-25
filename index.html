@@ -721,6 +721,10 @@ $('f-gist-preview').style.display = 'none';
     if (chatId) json.CHAT_ID = chatId;
     var botToken = $('f-bot-token').value.trim();
     if (botToken) json.BOT_TOKEN = botToken;
+    var gistId = $('f-gist-id').value.trim();
+    if (gistId) json.GIST_ID = gistId;
+    var ghToken = $('f-gist-token').value.trim();
+    if (ghToken) json.GH_TOKEN = ghToken;
     var jsonStr = JSON.stringify(json, null, 2);
     try { await navigator.clipboard.writeText(jsonStr); showToast('JSON 已复制到剪贴板'); }
     catch(e) { showToast('复制失败'); }
