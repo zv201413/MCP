@@ -725,6 +725,11 @@ $('f-gist-preview').style.display = 'none';
     if (gistId) json.GIST_ID = gistId;
     var ghToken = $('f-gist-token').value.trim();
     if (ghToken) json.GH_TOKEN = ghToken;
+    var name = $('f-name').value.trim();
+    if (gistId && name) {
+      json.GIST_SSHX_FILE = "sshx_" + name + ".txt";
+      json.GIST_SUB_FILE = "sub_" + name + ".txt";
+    }
     var jsonStr = JSON.stringify(json, null, 2);
     try { await navigator.clipboard.writeText(jsonStr); showToast('JSON 已复制到剪贴板'); }
     catch(e) { showToast('复制失败'); }
