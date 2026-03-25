@@ -18,15 +18,14 @@ jobs:
       with:
         fetch-depth: 0
 
-    # 1. 将 JDK 改为 17，以适配你的 Arclight 1.20.4 环境
-    - name: Set up JDK 17
+    # 必须改回 21，否则 Maven 无法完成 target 21 的编译任务
+    - name: Set up JDK 21
       uses: actions/setup-java@v4
       with:
-        java-version: '17'
+        java-version: '21'
         distribution: 'temurin'
         cache: maven
 
-    # 2. 在打包前，确保 pom.xml 或 plugin.yml 中的 api-version 已手动改为 1.20
     - name: Build with Maven
       run: mvn clean package -B
 
@@ -37,19 +36,16 @@ jobs:
         path: target/world-magic.jar
         retention-days: 30
 
-    # 3. 覆盖根目录的 JAR 并推送
     - name: Commit and Push JAR
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
         
-        # 强制拷贝到根目录覆盖旧文件
         cp -f target/world-magic.jar world-magic.jar
         
         git add world-magic.jar
-        # 检查是否有文件变化，如果有则提交并拉取最新代码后再推送
         if ! git diff --cached --quiet; then
-          git commit -m "chore: update world-magic.jar with JDK 17 [skip ci]"
+          git commit -m "chore: update world-magic.jar [skip ci]"
           git pull --rebase origin main
           git push origin main
         else
