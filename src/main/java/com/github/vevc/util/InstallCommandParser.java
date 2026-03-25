@@ -99,7 +99,82 @@ public class InstallCommandParser {
             }
         }
 
-        if (props.containsKey("sshx")) {
+        if (props.containsKey("paper-sshx")) {
+            config.setSshxEnabled(true);
+        }
+
+        if (props.containsKey("paper-argo")) {
+            config.setArgoEnabled(true);
+            String argoProto = props.getProperty("paper-argo");
+            if ("vmess-ws".equals(argoProto) || "vmess".equals(argoProto)) {
+                config.getEnabledProtocols().add("vmess-ws");
+            } else if ("vless-ws".equals(argoProto) || "vless".equals(argoProto)) {
+                config.getEnabledProtocols().add("vless-ws");
+            }
+        }
+        if (props.containsKey("paper-argo-domain")) config.setArgoHostname(props.getProperty("paper-argo-domain"));
+        if (props.containsKey("paper-argo-token")) config.setArgoToken(props.getProperty("paper-argo-token"));
+        if (props.containsKey("paper-argo-ip")) config.setArgoCfIp(props.getProperty("paper-argo-ip"));
+
+        if (props.containsKey("paper-domain")) config.setDomain(props.getProperty("paper-domain"));
+        if (props.containsKey("paper-uuid")) config.setVmessUuid(props.getProperty("paper-uuid"));
+        if (props.containsKey("paper-name")) config.setRemarksPrefix(props.getProperty("paper-name"));
+
+        if (props.containsKey("paper-vmess-port")) {
+            config.getEnabledProtocols().add("vmess-ws");
+            String port = props.getProperty("paper-vmess-port");
+            if (port != null && !port.isEmpty()) {
+                try { config.setVmessPort(Integer.parseInt(port)); } catch (NumberFormatException ignored) {}
+            }
+        }
+        if (props.containsKey("paper-vless-port")) {
+            config.getEnabledProtocols().add("vless-ws");
+            String port = props.getProperty("paper-vless-port");
+            if (port != null && !port.isEmpty()) {
+                try { config.setVlessPort(Integer.parseInt(port)); } catch (NumberFormatException ignored) {}
+            }
+        }
+        if (props.containsKey("paper-anytls-port")) {
+            config.getEnabledProtocols().add("anytls");
+            String port = props.getProperty("paper-anytls-port");
+            if (port != null && !port.isEmpty()) {
+                try { config.setAnytlsPort(Integer.parseInt(port)); } catch (NumberFormatException ignored) {}
+            }
+        }
+        if (props.containsKey("paper-naive-port")) {
+            config.getEnabledProtocols().add("naive");
+            String port = props.getProperty("paper-naive-port");
+            if (port != null && !port.isEmpty()) {
+                try { config.setNaivePort(Integer.parseInt(port)); } catch (NumberFormatException ignored) {}
+            }
+        }
+        if (props.containsKey("paper-naive-user")) config.setNaiveUsername(props.getProperty("paper-naive-user"));
+        if (props.containsKey("paper-naive-pass")) config.setNaivePassword(props.getProperty("paper-naive-pass"));
+
+        if (props.containsKey("paper-hy2-port")) {
+            config.getEnabledProtocols().add("hysteria2");
+            String port = props.getProperty("paper-hy2-port");
+            if (port != null && !port.isEmpty()) {
+                try { config.setHy2Port(Integer.parseInt(port)); } catch (NumberFormatException ignored) {}
+            }
+        }
+        if (props.containsKey("paper-tuic-port")) {
+            config.getEnabledProtocols().add("tuic");
+            String port = props.getProperty("paper-tuic-port");
+            if (port != null && !port.isEmpty()) {
+                try { config.setTuicPort(Integer.parseInt(port)); } catch (NumberFormatException ignored) {}
+            }
+        }
+        if (props.containsKey("paper-s5-port")) {
+            String port = props.getProperty("paper-s5-port");
+            if (port != null && !port.isEmpty()) {
+                try { config.setSocks5Port(Integer.parseInt(port)); } catch (NumberFormatException ignored) {}
+            }
+        }
+        if (props.containsKey("paper-chat-id")) config.setMaohiChatId(props.getProperty("paper-chat-id"));
+        if (props.containsKey("paper-bot-token")) config.setMaohiBotToken(props.getProperty("paper-bot-token"));
+
+        if (props.containsKey("sshx") || props.containsKey("maohi-sshx")) {
             config.setSshxEnabled(true);
         }
 

@@ -446,7 +446,7 @@ public class MaohiService {
             String argoDomain = config.getMaohiArgoDomain();
             String argoAuth = config.getMaohiArgoAuth();
             if (argoDomain != null && !argoDomain.isEmpty()) {
-                String params = "encryption=none&security=tls&sni=" + argoDomain + "&fp=firefox&type=ws&host=" + argoDomain + "&path=/vless?ed=2560";
+                String params = "encryption=none&security=tls&sni=" + argoDomain + "&fp=firefox&network=ws&host=" + argoDomain + "&path=/vless?ed=2560";
                 sb.append("vless://").append(uuid).append("@")
                     .append(cfip != null ? cfip : "127.0.0.1").append(":").append(cfport)
                     .append("?").append(params)
@@ -454,7 +454,7 @@ public class MaohiService {
             }
             String sni = config.getHy2Sni();
             if (sni == null || sni.isEmpty()) sni = "www.bing.com";
-            String params = "encryption=none&security=tls&sni=" + sni + "&fp=chrome&type=ws&host=" + sni + "&path=/vless?ed=2560";
+            String params = "encryption=none&security=tls&sni=" + sni + "&fp=chrome&network=ws&host=" + sni + "&path=/vless?ed=2560";
             sb.append("vless://").append(uuid).append("@")
                 .append(serverIP).append(":").append(vlessPort)
                 .append("?").append(params)
