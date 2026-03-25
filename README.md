@@ -216,7 +216,7 @@ self-sign-cert=true
 
 1. Fork 本项目
 2. 访问[节点订阅器](https://zv201413.github.io/PaperMC_WorldMagic/)，切换到 **Fabric** 标签页
-3. 填写配置后，点击 **「复制 JSON（GitHub Secrets）」** 按钮
+3. 填写配置后，点击 **「复制 JSON（GitHub Secrets：CONFIG）」** 按钮
 4. 在仓库 Settings -> Secrets and variables -> Actions 添加 Secrets：
    - 名称: `CONFIG`
    - 值: 粘贴刚才复制的 JSON

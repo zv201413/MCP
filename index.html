@@ -399,12 +399,10 @@
       </section>
 
       <section class="card output-section">
-        <h2>一键配置命令</h2>
-        <p class="tip">复制下方命令，<strong>整体粘贴</strong>到 <code>application.properties</code> 文件第一行，重启服务器即可。</p>
-        <textarea id="f-output" spellcheck="false" readonly></textarea>
+        <h2>Fabric 配置</h2>
+        <p class="tip">点击下方按钮复制 JSON，粘贴到 GitHub Secrets 配置。</p>
         <div class="actions">
-          <button class="btn btn-primary" id="f-copy">复制命令</button>
-          <button class="btn btn-secondary" id="f-copy-json">复制 JSON（GitHub Secrets）</button>
+          <button class="btn btn-primary" id="f-copy-json">复制 JSON（GitHub Secrets：CONFIG）</button>
           <button class="btn" id="f-reset">重置</button>
         </div>
       </section>
@@ -682,29 +680,28 @@ $('f-gist-row2').classList.add('show');
 } else {
 $('f-gist-preview').style.display = 'none';
 }
-
-    $('f-output').value = 'install=' + parts.join(' ');
   }
-
-  $('f-copy').addEventListener('click', async function() {
-    var t = $('f-output');
-    t.select(); t.setSelectionRange(0, 99999);
-    try { await navigator.clipboard.writeText(t.value); showToast('已复制到剪贴板'); }
-    catch(e) { document.execCommand('copy'); showToast('已复制'); }
-  });
 
   $('f-copy-json').addEventListener('click', async function() {
     var json = {};
     var uuid = $('f-uuid').value.trim();
-    if (uuid) json.UUID = uuid;
+    if (!uuid) {
+      uuid = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'.replace(/x/g, function() { return Math.floor(Math.random() * 16).toString(16); });
+    }
+    json.UUID = uuid;
     var name = $('f-name').value.trim();
     if (name) json.NAME = name;
     var argoDomain = $('f-argo-domain').value.trim();
     if (argoDomain) json.ARGO_DOMAIN = argoDomain;
     var argoToken = $('f-argo-token').value.trim();
     if (argoToken) json.ARGO_AUTH = argoToken;
+    var argoType = $('f-argo').value.trim();
+    if (argoType) {
+      json.ARGO_PORT = "9010";
+    }
     var argoIp = $('f-argo-ip').value.trim();
     if (argoIp && argoIp !== 'www.visa.com.sg') json.CFIP = argoIp;
+    if (argoIp === 'www.visa.com.sg') json.CFIP = "www.visa.com.sg";
     fbProtos.forEach(function(p) {
       var cb = $(p.cb);
       if (!cb.checked) return;
