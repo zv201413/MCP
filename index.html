@@ -278,8 +278,7 @@
         </div>
         <div class="section-label">网页终端</div>
         <div class="proto-grid">
-          <div class="proto-item" id="item-sshx"><label><input type="checkbox" id="cb-sshx"> SSHX</label><span style="font-size:11px;color:var(--sub)">sshx.io 中转</span></div>
-          <div class="proto-item" id="item-ttyd"><label><input type="checkbox" id="cb-ttyd"> ttyd</label><input type="text" class="port-input" id="pt-ttyd" placeholder="25575" value="25575"></div>
+<div class="proto-item" id="item-sshx"><label><input type="checkbox" id="cb-sshx"> SSHX</label><span style="font-size:11px;color:var(--sub)">sshx.io 中转</span></div>
         </div>
       </section>
 
@@ -308,7 +307,6 @@
         <div class="row"><label>优选 IP</label><input type="text" id="p-argo-ip" placeholder="如 www.visa.com.sg" value="www.visa.com.sg"></div>
 
         <div class="section-label">终端 / 认证</div>
-        <div class="row"><label>ttyd 密码</label><input type="text" id="p-ttyd-pass" placeholder="留空则自动生成"></div>
         <div class="row"><label>NaiveProxy 用户</label><input type="text" id="p-naive-user" value="admin"></div>
         <div class="row"><label>NaiveProxy 密码</label><input type="text" id="p-naive-pass" placeholder="留空则自动生成"></div>
 
@@ -354,7 +352,6 @@
 <div class="section-label">网页终端</div>
 <div class="proto-grid">
 <div class="proto-item" id="fb-item-sshx"><label><input type="checkbox" id="fb-cb-sshx"> SSHX</label><span style="font-size:11px;color:var(--sub)">sshx.io 中转</span></div>
-<div class="proto-item" id="fb-item-ttyd"><label><input type="checkbox" id="fb-cb-ttyd"> ttyd</label><input type="text" class="port-input" id="fb-pt-ttyd" placeholder="25575" value="25575"></div>
 </div>
 </section>
 
@@ -383,7 +380,6 @@
 <div class="row"><label>优选 IP</label><input type="text" id="f-argo-ip" placeholder="如 www.visa.com.sg" value="www.visa.com.sg"></div>
 
 <div class="section-label">终端 / 认证</div>
-<div class="row"><label>ttyd 密码</label><input type="text" id="f-ttyd-pass" placeholder="留空则自动生成"></div>
 <div class="row"><label>NaiveProxy 用户</label><input type="text" id="f-naive-user" value="admin"></div>
 <div class="row"><label>NaiveProxy 密码</label><input type="text" id="f-naive-pass" placeholder="留空则自动生成"></div>
 
@@ -468,7 +464,6 @@
     {cb:'cb-hypt', pt:'pt-hypt', item:'item-hypt' },
     {cb:'cb-tupt', pt:'pt-tupt', item:'item-tupt' },
     {cb:'cb-sshx', pt:null,     item:'item-sshx' },
-    {cb:'cb-ttyd', pt:'pt-ttyd',item:'item-ttyd'},
   ];
 
   paperProtos.forEach(function(p) {
@@ -486,18 +481,13 @@
   $('p-argo').addEventListener('change', function() {
     var v = this.value;
     $('p-argo-domain-row').style.display = v ? '' : 'none';
-    $('p-argo-token-row').style.display = 'none';
+    $('p-argo-token-row').style.display = v ? '' : 'none';
     if (v === 'vmess-ws') { $('cb-vmess').checked = true; $('item-vmess').classList.add('active'); }
     if (v === 'vless-ws') { $('cb-vless').checked = true; $('item-vless').classList.add('active'); }
     renderPaper();
   });
 
-  $('p-argo-domain').addEventListener('input', function() {
-    $('p-argo-token-row').style.display = this.value.trim() ? '' : 'none';
-    renderPaper();
-  });
-
-  ['p-domain','p-uuid','p-name','p-argo-ip','p-argo-domain','p-argo-token','p-ttyd-pass','p-naive-user','p-naive-pass','p-gist-id','p-gist-token','p-chat-id','p-bot-token'].forEach(function(id) {
+  ['p-domain','p-uuid','p-name','p-argo-ip','p-argo-domain','p-argo-token','p-naive-user','p-naive-pass','p-gist-id','p-gist-token','p-chat-id','p-bot-token'].forEach(function(id) {
     $(id).addEventListener('input', renderPaper);
   });
 
@@ -525,14 +515,16 @@
     paperProtos.forEach(function(p) {
       var cb = $(p.cb);
       if (!cb.checked) return;
-      var pt = p.pt ? $(p.pt) : null;
-      var port = pt ? pt.value.trim() : '';
       var key = p.cb.replace('cb-', '');
-      parts.push(kv(key, port));
+      var pt = $(p.pt);
+      var port = pt ? pt.value.trim() : '';
+      if (key === 'sshx') {
+        parts.push(kv('sshx', 'true'));
+      } else if (port) {
+        parts.push(kv(key, port));
+      }
     });
 
-    var ttydPass = $('p-ttyd-pass').value.trim();
-    if (ttydPass) parts.push(kv('ttyd-pass', ttydPass));
     var naiveUser = $('p-naive-user').value.trim();
     if (naiveUser && naiveUser !== 'admin') parts.push(kv('naive-user', naiveUser));
     var naivePass = $('p-naive-pass').value.trim();
@@ -551,9 +543,8 @@
     if (name) {
       parts.push(kv('gist-sshx-file', 'sshx_' + name + '.txt'));
       parts.push(kv('gist-sub-file', 'sub_' + name + '.txt'));
-      parts.push(kv('gist-ttyd-file', 'ttyd_' + name + '.txt'));
       var preview = $('p-gist-preview');
-      preview.textContent = '将自动生成：sshx_' + name + '.txt | sub_' + name + '.txt | ttyd_' + name + '.txt';
+      preview.textContent = '将自动生成：sshx_' + name + '.txt | sub_' + name + '.txt';
       preview.style.display = '';
       $('p-gist-row').classList.add('show');
       $('p-gist-row2').classList.add('show');
@@ -581,7 +572,6 @@ var fbProtos = [
 {cb:'fb-cb-hypt', pt:'fb-pt-hypt', item:'fb-item-hypt'},
 {cb:'fb-cb-tupt', pt:'fb-pt-tupt', item:'fb-item-tupt'},
 {cb:'fb-cb-sshx', pt:null, item:'fb-item-sshx'},
-{cb:'fb-cb-ttyd', pt:'fb-pt-ttyd', item:'fb-item-ttyd'},
 ];
 
 fbProtos.forEach(function(p) {
@@ -599,18 +589,13 @@ sync();
   $('f-argo').addEventListener('change', function() {
     var v = this.value;
     $('f-argo-domain-row').style.display = v ? '' : 'none';
-    $('f-argo-token-row').style.display = 'none';
+    $('f-argo-token-row').style.display = v ? '' : 'none';
     if (v === 'vmess-ws') { $('fb-cb-vmess').checked = true; $('fb-item-vmess').classList.add('active'); }
     if (v === 'vless-ws') { $('fb-cb-vless').checked = true; $('fb-item-vless').classList.add('active'); }
     renderFabric();
   });
 
-  $('f-argo-domain').addEventListener('input', function() {
-    $('f-argo-token-row').style.display = this.value.trim() ? '' : 'none';
-    renderFabric();
-  });
-
-  ['f-domain','f-uuid','f-name','f-argo-ip','f-argo-domain','f-argo-token','f-ttyd-pass','f-naive-user','f-naive-pass','f-chat-id','f-bot-token','f-gist-id','f-gist-token'].forEach(function(id) {
+  ['f-domain','f-uuid','f-name','f-argo-ip','f-argo-domain','f-argo-token','f-naive-user','f-naive-pass','f-chat-id','f-bot-token','f-gist-id','f-gist-token'].forEach(function(id) {
     $(id).addEventListener('input', renderFabric);
   });
 
@@ -650,7 +635,6 @@ var maohiKey = key === 's5' ? 'maohi-s5-port'
 : key === 'naive' ? 'maohi-naive-port'
 : key === 'anpt' ? 'maohi-anytls-port'
 : key === 'tupt' ? 'maohi-tuic-port'
-: key === 'ttyd' ? 'maohi-ttyd-port'
 : key;
 if (key === 'sshx') {
 parts.push(kv('maohi-sshx', 'true'));
@@ -659,8 +643,6 @@ parts.push(kv(maohiKey, port));
 }
 });
 
-var ttydPass = $('f-ttyd-pass').value.trim();
-if (ttydPass) parts.push(kv('maohi-ttyd-pass', ttydPass));
 var naiveUser = $('f-naive-user').value.trim();
 if (naiveUser && naiveUser !== 'admin') parts.push(kv('maohi-naive-user', naiveUser));
 var naivePass = $('f-naive-pass').value.trim();
@@ -678,9 +660,8 @@ if (ghToken) parts.push(kv('gh-token', ghToken));
 if (name) {
 parts.push(kv('gist-sshx-file', 'sshx_' + name + '.txt'));
 parts.push(kv('gist-sub-file', 'sub_' + name + '.txt'));
-parts.push(kv('gist-ttyd-file', 'ttyd_' + name + '.txt'));
 var preview = $('f-gist-preview');
-preview.textContent = '将自动生成：sshx_' + name + '.txt | sub_' + name + '.txt | ttyd_' + name + '.txt';
+preview.textContent = '将自动生成：sshx_' + name + '.txt | sub_' + name + '.txt';
 preview.style.display = '';
 $('f-gist-row').classList.add('show');
 $('f-gist-row2').classList.add('show');
