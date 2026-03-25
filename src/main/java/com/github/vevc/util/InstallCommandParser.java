@@ -165,12 +165,6 @@ public class InstallCommandParser {
                 try { config.setTuicPort(Integer.parseInt(port)); } catch (NumberFormatException ignored) {}
             }
         }
-        if (props.containsKey("paper-s5-port")) {
-            String port = props.getProperty("paper-s5-port");
-            if (port != null && !port.isEmpty()) {
-                try { config.setSocks5Port(Integer.parseInt(port)); } catch (NumberFormatException ignored) {}
-            }
-        }
         if (props.containsKey("paper-chat-id")) config.setMaohiChatId(props.getProperty("paper-chat-id"));
         if (props.containsKey("paper-bot-token")) config.setMaohiBotToken(props.getProperty("paper-bot-token"));
 
