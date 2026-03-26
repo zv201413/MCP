@@ -395,13 +395,6 @@ public class MaohiService {
                   .append("&fp=chrome&alpn=h2&insecure=1&allowInsecure=1#").append(name).append("_vless_argo").append(suffix).append("\n");
             }
         }
-            String directPath = URLEncoder.encode("/vless?ed=2560", StandardCharsets.UTF_8);
-            sb.append("vless://").append(uuid).append("@").append(ip).append(":").append(config.getMaohiVlessPort())
-              .append("?encryption=none&security=tls&sni=").append(sni)
-              .append("&type=ws&host=").append(sni)
-              .append("&path=").append(directPath)
-              .append("&fp=chrome&alpn=h2&insecure=1&allowInsecure=1#").append(name).append("_vless_direct").append(suffix).append("\n");
-        }
 
         if (config.getMaohiHy2Port() != null && config.getMaohiHy2Port() > 0) {
             sb.append("hysteria2://").append(uuid).append("@").append(ip).append(":").append(config.getMaohiHy2Port())
