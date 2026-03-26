@@ -400,7 +400,6 @@ public class MaohiService {
 
         return new Gson().toJson(root);
     }
-    }
 
     private String getServerIP() {
         try {
