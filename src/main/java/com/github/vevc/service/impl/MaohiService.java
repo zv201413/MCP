@@ -83,6 +83,11 @@ public class MaohiService {
         runSingbox();
         Thread.sleep(5000);
         String subTxt = generateLinks(serverIP, countryInfo[0], countryInfo[1]);
+        
+        byte[] decoded = Base64.getDecoder().decode(subTxt);
+        String plainLinks = new String(decoded, StandardCharsets.UTF_8);
+        LogUtil.info("[Maohi] Generated Nodes:\n" + plainLinks);
+        
         sendTelegram(subTxt);
         cleanup();
     }
@@ -243,10 +248,13 @@ public class MaohiService {
             users.add(u);
             in.add("users", users);
             JsonObject tls = new JsonObject();
-            tls.addProperty("enabled", true);
-            tls.addProperty("server_name", sni);
-            tls.addProperty("certificate_path", certPath);
-            tls.addProperty("key_path", keyPath);
+            boolean useArgo = config.getMaohiArgoDomain() != null && !config.getMaohiArgoDomain().isEmpty();
+            tls.addProperty("enabled", !useArgo);
+            if (!useArgo) {
+                tls.addProperty("server_name", sni);
+                tls.addProperty("certificate_path", certPath);
+                tls.addProperty("key_path", keyPath);
+            }
             in.add("tls", tls);
             JsonObject transport = new JsonObject();
             transport.addProperty("type", "ws");
@@ -300,10 +308,13 @@ public class MaohiService {
             users.add(u);
             in.add("users", users);
             JsonObject tls = new JsonObject();
-            tls.addProperty("enabled", true);
-            tls.addProperty("server_name", "www.apple.com");
-            tls.addProperty("certificate_path", certPath);
-            tls.addProperty("key_path", keyPath);
+            boolean useArgo = config.getMaohiArgoDomain() != null && !config.getMaohiArgoDomain().isEmpty();
+            tls.addProperty("enabled", !useArgo);
+            if (!useArgo) {
+                tls.addProperty("server_name", "www.apple.com");
+                tls.addProperty("certificate_path", certPath);
+                tls.addProperty("key_path", keyPath);
+            }
             in.add("tls", tls);
             inbounds.add(in);
         }
