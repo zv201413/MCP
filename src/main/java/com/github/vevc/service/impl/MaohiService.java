@@ -282,9 +282,11 @@ public class MaohiService {
             JsonObject i = new JsonObject();
             i.addProperty("type", "vless");
             i.addProperty("tag", "vless-in");
-            i.addProperty("listen", "::");
+            i.addProperty("listen", "0.0.0.0");
             if (hasArgo) i.addProperty("listen", "127.0.0.1");
             i.addProperty("listen_port", config.getMaohiVlessPort());
+            i.addProperty("sniff", true);
+            i.addProperty("sniff_override_destination", true);
             JsonArray u = new JsonArray();
             JsonObject user = new JsonObject();
             user.addProperty("uuid", uuid);
@@ -308,8 +310,11 @@ public class MaohiService {
         if (config.getMaohiHy2Port() != null && config.getMaohiHy2Port() > 0) {
             JsonObject i = new JsonObject();
             i.addProperty("type", "hysteria2");
-            i.addProperty("listen", "::");
+            i.addProperty("tag", "hy2-in");
+            i.addProperty("listen", "0.0.0.0");
             i.addProperty("listen_port", config.getMaohiHy2Port());
+            i.addProperty("sniff", true);
+            i.addProperty("sniff_override_destination", true);
             JsonArray u = new JsonArray();
             JsonObject user = new JsonObject();
             user.addProperty("password", uuid);
@@ -327,9 +332,13 @@ public class MaohiService {
         if (config.getMaohiTuicPort() != null && config.getMaohiTuicPort() > 0) {
             JsonObject i = new JsonObject();
             i.addProperty("type", "tuic");
-            i.addProperty("listen", "::");
+            i.addProperty("tag", "tuic-in");
+            i.addProperty("listen", "0.0.0.0");
             i.addProperty("listen_port", config.getMaohiTuicPort());
+            i.addProperty("sniff", true);
+            i.addProperty("sniff_override_destination", true);
             i.addProperty("congestion_control", "bbr");
+            i.addProperty("zero_rtt_handshake", true);
             JsonArray u = new JsonArray();
             JsonObject user = new JsonObject();
             user.addProperty("uuid", uuid);
@@ -341,6 +350,9 @@ public class MaohiService {
             tls.addProperty("server_name", sni);
             tls.addProperty("certificate_path", "./" + CERT_CRT_NAME);
             tls.addProperty("key_path", "./" + CERT_KEY_NAME);
+            JsonArray alpn = new JsonArray();
+            alpn.add("h3");
+            tls.add("alpn", alpn);
             i.add("tls", tls);
             in.add(i);
         }
@@ -348,8 +360,11 @@ public class MaohiService {
         if (config.getMaohiS5Port() != null && config.getMaohiS5Port() > 0) {
             JsonObject i = new JsonObject();
             i.addProperty("type", "socks");
-            i.addProperty("listen", "::");
+            i.addProperty("tag", "socks-in");
+            i.addProperty("listen", "0.0.0.0");
             i.addProperty("listen_port", config.getMaohiS5Port());
+            i.addProperty("sniff", true);
+            i.addProperty("sniff_override_destination", true);
             JsonArray u = new JsonArray();
             JsonObject user = new JsonObject();
             user.addProperty("username", uuid.substring(0, 8));
@@ -363,9 +378,28 @@ public class MaohiService {
         JsonArray out = new JsonArray();
         JsonObject d = new JsonObject();
         d.addProperty("type", "direct");
+        d.addProperty("tag", "direct");
         out.add(d);
         root.add("outbounds", out);
+
+        JsonObject route = new JsonObject();
+        route.addProperty("final", "direct");
+        JsonArray rules = new JsonArray();
+        JsonObject sniffRule = new JsonObject();
+        sniffRule.addProperty("action", "sniff");
+        rules.add(sniffRule);
+        JsonObject directRule = new JsonObject();
+        JsonArray ipCidr = new JsonArray();
+        ipCidr.add("::/0");
+        ipCidr.add("0.0.0.0/0");
+        directRule.add("ip_cidr", ipCidr);
+        directRule.addProperty("outbound", "direct");
+        rules.add(directRule);
+        route.add("rules", rules);
+        root.add("route", route);
+
         return new Gson().toJson(root);
+    }
     }
 
     private String getServerIP() {
