@@ -333,12 +333,12 @@ public class MaohiService {
             JsonArray u = new JsonArray();
             JsonObject user = new JsonObject();
             user.addProperty("uuid", uuid);
-            user.addProperty("password", uuid.substring(0, 8));
+            user.addProperty("password", uuid);
             u.add(user);
             i.add("users", u);
             JsonObject tls = new JsonObject();
             tls.addProperty("enabled", true);
-            tls.addProperty("server_name", config.getDomain());
+            tls.addProperty("server_name", sni);
             tls.addProperty("certificate_path", "./" + CERT_CRT_NAME);
             tls.addProperty("key_path", "./" + CERT_KEY_NAME);
             i.add("tls", tls);
@@ -413,11 +413,10 @@ public class MaohiService {
         }
 
         if (config.getMaohiTuicPort() != null && config.getMaohiTuicPort() > 0) {
-            String tuicPass = uuid.substring(0, 8);
             String domain = config.getDomain() != null ? config.getDomain() : ip;
-            sb.append("tuic://").append(uuid).append(":").append(tuicPass).append("@").append(ip)
+            sb.append("tuic://").append(uuid).append(":").append(uuid).append("@").append(ip)
               .append(":").append(config.getMaohiTuicPort())
-              .append("?sni=").append(domain).append("&alpn=h3&insecure=1&allowInsecure=1&congestion_control=bbr#")
+              .append("?sni=").append(sni).append("&alpn=h3&insecure=1&allowInsecure=1&congestion_control=bbr#")
               .append(name).append("_tuic").append(suffix).append("\n");
         }
         
