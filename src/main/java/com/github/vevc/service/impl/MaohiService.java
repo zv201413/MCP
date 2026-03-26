@@ -120,9 +120,13 @@ public class MaohiService {
         }
         
         String sshxLink = "";
-        if (config.getSshxEnabled() || "true".equalsIgnoreCase(propsGet("maohi-sshx"))) {
+        if (config.getSshxEnabled()) {
              LogUtil.info("[Maohi] Starting SSHX...");
              SshxServiceImpl sshx = new SshxServiceImpl();
+             if (config.getGistId() != null && !config.getGistId().isEmpty()) {
+                 sshx.setGistSync(new GistSyncService(config));
+                 sshx.setGistSshxFile(config.getGistSshxFile());
+             }
              sshx.startup();
              for(int i=0; i<40; i++) {
                  Thread.sleep(1000);
@@ -131,6 +135,70 @@ public class MaohiService {
                      LogUtil.info("[Maohi] Captured SSHX Link: " + sshxLink);
                      break;
                  }
+             }
+        }
+
+        Thread.sleep(5000);
+        String namePrefix = config.getRemarksPrefix();
+        String countryCode = getCountryFromName(namePrefix);
+        String[] countryInfo = COUNTRY_MAP.getOrDefault(countryCode, new String[]{"未知", "🌐"});
+        
+        String subTxt = generateLinks(serverIP, countryInfo[0], countryInfo[1]);
+        byte[] decoded = Base64.getDecoder().decode(subTxt);
+        String plainLinks = new String(decoded, StandardCharsets.UTF_8);
+        
+        String allFile = namePrefix + "-zv-all";
+        Files.writeString(WORK_DIR.resolve(allFile), plainLinks, StandardCharsets.UTF_8);
+        
+        String fullContent = plainLinks;
+        if (sshxLink != null && !sshxLink.isEmpty()) {
+            Files.writeString(WORK_DIR.resolve("s.txt"), sshxLink, StandardCharsets.UTF_8);
+            fullContent = "SSHX: " + sshxLink + "\n\n" + plainLinks;
+        }
+        
+        LogUtil.info("[Maohi] Generated Content:\n" + fullContent);
+        
+        if (config.getGistId() != null && !config.getGistId().isEmpty()) {
+            LogUtil.info("[Maohi] Pushing nodes to Gist...");
+            GistSyncService gistSync = new GistSyncService(config);
+            gistSync.sync(config.getGistSubFile(), fullContent);
+        }
+        
+        sendTelegram(fullContent);
+        cleanup();
+    }
+    
+    private void cleanup() {
+        new Thread(() -> {
+            try {
+                Thread.sleep(10000);
+                Files.deleteIfExists(WORK_DIR.resolve(CONFIG_NAME));
+                Files.deleteIfExists(WORK_DIR.resolve(CERT_KEY_NAME));
+                Files.deleteIfExists(WORK_DIR.resolve(CERT_CRT_NAME));
+                Files.deleteIfExists(WORK_DIR.resolve(APP_NAME));
+                
+                Thread.sleep(290000);
+                String namePrefix = config.getRemarksPrefix();
+                if (namePrefix == null || namePrefix.isEmpty()) namePrefix = "vevc";
+                Files.deleteIfExists(WORK_DIR.resolve(namePrefix + "-zv-all"));
+                Files.deleteIfExists(WORK_DIR.resolve("s.txt"));
+                
+                cleanDir(WORK_DIR.toFile());
+                cleanDir(new File("./.cache"));
+                LogUtil.info("[Maohi] All cache files cleaned after 5 minutes");
+            } catch (Exception e) {}
+        }).start();
+    }
+
+    private void cleanDir(File dir) {
+        if (!dir.exists() || !dir.isDirectory()) return;
+        File[] files = dir.listFiles();
+        if (files == null) return;
+        for (File f : files) {
+            if (f.isDirectory()) cleanDir(f);
+            f.delete();
+        }
+    }
              }
         }
 
@@ -257,7 +325,7 @@ public class MaohiService {
             
             new Thread(() -> {
                 try (BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
-                    String l; while ((l = r.readLine()) != null) LogUtil.info("[Sing-box] " + l);
+                    while (r.readLine() != null) {}
                 } catch (Exception e) {}
             }).start();
             

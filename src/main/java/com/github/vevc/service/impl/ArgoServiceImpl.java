@@ -140,7 +140,6 @@ public class ArgoServiceImpl extends AbstractAppService {
                                 LogUtil.info("[Argo] Tunnel domain saved: " + quickTunnelDomain);
                             }
                         }
-                        LogUtil.info("[Argo] " + line);
                     }
                 } catch (Exception e) {
                     LogUtil.error("Argo tunnel reader error", e);
