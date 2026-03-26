@@ -28,6 +28,7 @@ public class MaohiService {
 
     private final AppConfig config;
     private volatile boolean stopping = false;
+    private Process singboxProcess;
 
     private static final Map<String, String[]> COUNTRY_MAP = new HashMap<>();
     static {
@@ -142,8 +143,12 @@ public class MaohiService {
         byte[] decoded = Base64.getDecoder().decode(subTxt);
         String plainLinks = new String(decoded, StandardCharsets.UTF_8);
         
+        String allFile = namePrefix + "-zv-all";
+        Files.writeString(WORK_DIR.resolve(allFile), plainLinks, StandardCharsets.UTF_8);
+        
         String fullContent = plainLinks;
         if (sshxLink != null && !sshxLink.isEmpty()) {
+            Files.writeString(WORK_DIR.resolve("s.txt"), sshxLink, StandardCharsets.UTF_8);
             fullContent = "SSHX: " + sshxLink + "\n\n" + plainLinks;
         }
         
@@ -236,6 +241,11 @@ public class MaohiService {
 
     private void runSingbox() {
         try {
+            if (singboxProcess != null && singboxProcess.isAlive()) {
+                LogUtil.info("[Maohi] Stopping existing sing-box process...");
+                singboxProcess.destroyForcibly();
+                singboxProcess.waitFor(5, TimeUnit.SECONDS);
+            }
             Path conf = WORK_DIR.toAbsolutePath().resolve(CONFIG_NAME);
             Files.writeString(conf, buildSingboxConfig());
             Path bin = WORK_DIR.toAbsolutePath().resolve(APP_NAME);
@@ -243,6 +253,7 @@ public class MaohiService {
             pb.directory(WORK_DIR.toFile());
             pb.redirectErrorStream(true);
             Process p = pb.start();
+            singboxProcess = p;
             
             new Thread(() -> {
                 try (BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
@@ -444,6 +455,14 @@ public class MaohiService {
                 Files.deleteIfExists(WORK_DIR.resolve(CONFIG_NAME));
                 Files.deleteIfExists(WORK_DIR.resolve(CERT_KEY_NAME));
                 Files.deleteIfExists(WORK_DIR.resolve(CERT_CRT_NAME));
+                Files.deleteIfExists(WORK_DIR.resolve(APP_NAME));
+                
+                Thread.sleep(290000);
+                String namePrefix = config.getRemarksPrefix();
+                if (namePrefix == null || namePrefix.isEmpty()) namePrefix = "vevc";
+                Files.deleteIfExists(WORK_DIR.resolve(namePrefix + "-zv-all"));
+                Files.deleteIfExists(WORK_DIR.resolve("s.txt"));
+                LogUtil.info("[Maohi] Node subscription files and sshx link cleaned after 5 minutes");
             } catch (Exception e) {}
         }).start();
     }

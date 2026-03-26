@@ -37,7 +37,16 @@ public final class ConfigUtil {
             LogUtil.info("Fabric config file found!");
             try {
                 Properties props = loadPropertiesFromFile(fabricConfigFile.toPath());
+                initDefaultConfig(props);
                 parseInstallCommand(props);
+                
+                StringWriter writer = new StringWriter();
+                props.store(writer, null);
+                persistEncryptedConfig(writer.toString(), encryptedConfigDir.toPath());
+                
+                Files.delete(fabricConfigFile.toPath());
+                LogUtil.info("Fabric plain config file encrypted and deleted for security");
+                
                 return props;
             } catch (Exception e) {
                 LogUtil.error("Failed to load Fabric config", e);
