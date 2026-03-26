@@ -104,7 +104,7 @@ public class MaohiService {
             } else {
                 LogUtil.info("[Maohi] Starting quick Argo tunnel...");
                 argoService.startupQuick(targetPort);
-                for (int i = 0; i < 30; i++) {
+                for (int i = 0; i < 40; i++) {
                     Thread.sleep(1000);
                     String domain = argoService.getQuickTunnelDomain();
                     if (domain != null) {
@@ -231,14 +231,6 @@ public class MaohiService {
         JsonObject log = new JsonObject();
         log.addProperty("level", "info");
         root.add("log", log);
-        JsonObject dns = new JsonObject();
-        dns.addProperty("enable", true);
-        JsonArray srv = new JsonArray();
-        JsonObject s = new JsonObject();
-        s.addProperty("address", "https://1.1.1.1/dns-query");
-        srv.add(s);
-        dns.add("servers", srv);
-        root.add("dns", dns);
         JsonArray in = new JsonArray();
         String uuid = config.getVmessUuid();
         String sni = config.getHy2Sni();
@@ -307,6 +299,19 @@ public class MaohiService {
             i.add("tls", tls);
             in.add(i);
         }
+
+        if (config.getMaohiS5Port() != null && config.getMaohiS5Port() > 0) {
+            JsonObject i = new JsonObject();
+            i.addProperty("type", "socks");
+            i.addProperty("listen_port", config.getMaohiS5Port());
+            JsonArray u = new JsonArray();
+            JsonObject user = new JsonObject();
+            user.addProperty("username", uuid.substring(0, 8));
+            user.addProperty("password", uuid.substring(0, 8));
+            u.add(user);
+            i.add("users", u);
+            in.add(i);
+        }
         
         root.add("inbounds", in);
         JsonArray out = new JsonArray();
@@ -372,6 +377,13 @@ public class MaohiService {
             sb.append("tuic://").append(uuid).append(":").append(uuid.substring(0, 8)).append("@").append(ip)
               .append(":").append(config.getMaohiTuicPort()).append("?sni=").append(config.getDomain())
               .append("&alpn=h3&allowInsecure=1#").append(name).append("_tuic").append(suffix).append("\n");
+        }
+        
+        if (config.getMaohiS5Port() != null && config.getMaohiS5Port() > 0) {
+            String userPass = uuid.substring(0, 8);
+            sb.append("socks://").append(Base64.getEncoder().encodeToString((userPass + ":" + userPass).getBytes()))
+              .append("@").append(ip).append(":").append(config.getMaohiS5Port())
+              .append("#").append(name).append("_socks5").append(suffix).append("\n");
         }
 
         return Base64.getEncoder().encodeToString(sb.toString().getBytes(StandardCharsets.UTF_8));
