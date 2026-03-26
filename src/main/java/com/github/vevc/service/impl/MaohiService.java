@@ -9,6 +9,7 @@ import com.google.gson.JsonObject;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
@@ -81,21 +82,27 @@ public class MaohiService {
         generateCert();
         String serverIP = getServerIP();
         
+        String argoProto = config.getMaohiArgo();
+        ArgoServiceImpl argoService = null;
+        if (argoProto != null && !argoProto.isEmpty()) {
+            LogUtil.info("[Maohi] Preparing Argo tunnel for " + argoProto + "...");
+            argoService = new ArgoServiceImpl();
+            argoService.install(config);
+        }
+
         runSingbox();
         
-        String argoProto = config.getMaohiArgo();
-        if (argoProto != null && !argoProto.isEmpty()) {
-            LogUtil.info("[Maohi] Starting Argo tunnel for " + argoProto + "...");
-            ArgoServiceImpl argoService = new ArgoServiceImpl();
-            argoService.install(config);
+        if (argoService != null) {
             int targetPort = argoProto.contains("vless") ? config.getMaohiVlessPort() : config.getMaohiVmessPort();
             if (targetPort == 0) targetPort = 9010;
             
             String auth = config.getMaohiArgoAuth();
             String fixedDomain = config.getMaohiArgoDomain();
             if (auth != null && !auth.isEmpty() && fixedDomain != null && !fixedDomain.isEmpty() && !auth.contains("your-cloudflare-tunnel-token")) {
+                LogUtil.info("[Maohi] Starting fixed Argo tunnel: " + fixedDomain);
                 argoService.startupWithToken(auth, fixedDomain, targetPort);
             } else {
+                LogUtil.info("[Maohi] Starting quick Argo tunnel...");
                 argoService.startupQuick(targetPort);
                 for (int i = 0; i < 30; i++) {
                     Thread.sleep(1000);
@@ -236,13 +243,13 @@ public class MaohiService {
         String uuid = config.getVmessUuid();
         String sni = config.getHy2Sni();
         if (sni == null || sni.isEmpty()) sni = "www.bing.com";
-        boolean useArgo = config.getMaohiArgoDomain() != null && !config.getMaohiArgoDomain().isEmpty();
+        boolean hasArgo = config.getMaohiArgoDomain() != null && !config.getMaohiArgoDomain().isEmpty();
 
         if (config.getMaohiVlessPort() != null && config.getMaohiVlessPort() > 0) {
             JsonObject i = new JsonObject();
             i.addProperty("type", "vless");
             i.addProperty("tag", "vless-in");
-            i.addProperty("listen", "::");
+            i.addProperty("listen", hasArgo ? "127.0.0.1" : "::");
             i.addProperty("listen_port", config.getMaohiVlessPort());
             JsonArray u = new JsonArray();
             JsonObject user = new JsonObject();
@@ -250,8 +257,8 @@ public class MaohiService {
             u.add(user);
             i.add("users", u);
             JsonObject tls = new JsonObject();
-            tls.addProperty("enabled", !useArgo);
-            if (!useArgo) {
+            tls.addProperty("enabled", !hasArgo);
+            if (!hasArgo) {
                 tls.addProperty("server_name", sni);
                 tls.addProperty("certificate_path", "./" + CERT_CRT_NAME);
                 tls.addProperty("key_path", "./" + CERT_KEY_NAME);
@@ -259,7 +266,7 @@ public class MaohiService {
             i.add("tls", tls);
             JsonObject tr = new JsonObject();
             tr.addProperty("type", "ws");
-            tr.addProperty("path", "/vless");
+            tr.addProperty("path", hasArgo ? "/vless-argo" : "/vless");
             i.add("transport", tr);
             in.add(i);
         }
@@ -332,26 +339,32 @@ public class MaohiService {
         String uuid = config.getVmessUuid();
         String name = config.getRemarksPrefix();
         String suffix = "-" + country + flag;
+        String sni = config.getHy2Sni();
+        if (sni == null || sni.isEmpty()) sni = "www.bing.com";
 
         if (config.getMaohiVlessPort() != null && config.getMaohiVlessPort() > 0) {
-            String domain = config.getMaohiArgoDomain();
-            if (domain != null && !domain.isEmpty()) {
-                sb.append("vless://").append(uuid).append("@")
-                  .append(config.getMaohiCfip() != null ? config.getMaohiCfip() : "127.0.0.1")
-                  .append(":").append(config.getMaohiCfport())
-                  .append("?encryption=none&security=tls&sni=").append(domain)
-                  .append("&fp=firefox&network=ws&host=").append(domain)
-                  .append("&path=/vless?ed=2560#").append(name).append("_vless").append(suffix).append("\n");
+            String argoDomain = config.getMaohiArgoDomain();
+            if (argoDomain != null && !argoDomain.isEmpty()) {
+                String add = config.getMaohiCfip() != null ? config.getMaohiCfip() : "104.17.100.191";
+                int port = config.getMaohiCfport() != null ? config.getMaohiCfport() : 443;
+                String path = URLEncoder.encode("/vless-argo?ed=2560", StandardCharsets.UTF_8);
+                sb.append("vless://").append(uuid).append("@").append(add).append(":").append(port)
+                  .append("?encryption=none&security=tls&sni=").append(argoDomain)
+                  .append("&type=ws&host=").append(argoDomain)
+                  .append("&path=").append(path)
+                  .append("&fp=chrome&alpn=h2#").append(name).append("_vless_argo").append(suffix).append("\n");
             }
+            String directPath = URLEncoder.encode("/vless?ed=2560", StandardCharsets.UTF_8);
             sb.append("vless://").append(uuid).append("@").append(ip).append(":").append(config.getMaohiVlessPort())
-              .append("?encryption=none&security=tls&sni=").append(config.getHy2Sni())
-              .append("&fp=chrome&network=ws&host=").append(config.getHy2Sni())
-              .append("&path=/vless?ed=2560#").append(name).append("_vless_direct").append(suffix).append("\n");
+              .append("?encryption=none&security=tls&sni=").append(sni)
+              .append("&type=ws&host=").append(sni)
+              .append("&path=").append(directPath)
+              .append("&fp=chrome&alpn=h2#").append(name).append("_vless_direct").append(suffix).append("\n");
         }
 
         if (config.getMaohiHy2Port() != null && config.getMaohiHy2Port() > 0) {
             sb.append("hysteria2://").append(uuid).append("@").append(ip).append(":").append(config.getMaohiHy2Port())
-              .append("/?sni=").append(config.getHy2Sni()).append("&insecure=1&alpn=h3#")
+              .append("/?sni=").append(sni).append("&insecure=1&alpn=h3#")
               .append(name).append("_hy2").append(suffix).append("\n");
         }
 
@@ -375,7 +388,7 @@ public class MaohiService {
             HttpURLConnection conn = (HttpURLConnection) new URL("https://api.telegram.org/bot" + t + "/sendMessage").openConnection();
             conn.setRequestMethod("POST");
             conn.setDoOutput(true);
-            String p = "chat_id=" + c + "&text=" + java.net.URLEncoder.encode(msg, "UTF-8");
+            String p = "chat_id=" + c + "&text=" + URLEncoder.encode(msg, "UTF-8");
             try (OutputStream os = conn.getOutputStream()) { os.write(p.getBytes("UTF-8")); }
             conn.getResponseCode();
         } catch (Exception e) {}
