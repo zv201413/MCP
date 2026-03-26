@@ -137,13 +137,25 @@ public class MaohiService {
     }
 
     private void extractSingbox(Path tarFile) throws Exception {
-        ProcessBuilder pb = new ProcessBuilder("tar", "-xzf", tarFile.toString(), "-C", WORK_DIR.toString());
+        ProcessBuilder pb = new ProcessBuilder("tar", "-xzf", tarFile.toAbsolutePath().toString(), "-C", WORK_DIR.toAbsolutePath().toString());
         pb.directory(WORK_DIR.toFile());
         pb.redirectErrorStream(true);
         Process p = pb.start();
+        
+        StringBuilder output = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) output.append(line).append("\n");
+        }
+        
         if (!p.waitFor(60, TimeUnit.SECONDS)) {
             p.destroyForcibly();
             throw new RuntimeException("Sing-box extraction timeout");
+        }
+
+        int exitCode = p.exitValue();
+        if (exitCode != 0) {
+            throw new RuntimeException("Tar extraction failed (code " + exitCode + "). Output: " + output.toString());
         }
 
         Path directBin = WORK_DIR.resolve("sing-box");
