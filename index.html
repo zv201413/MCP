@@ -399,10 +399,11 @@
       </section>
 
       <section class="card output-section">
-        <h2>Fabric 配置</h2>
-        <p class="tip">点击下方按钮复制 JSON，粘贴到 GitHub Secrets 配置。</p>
+        <h2>一键配置命令</h2>
+        <p class="tip">复制下方命令，<strong>整体粘贴</strong>到 <code>config/maohi.properties</code> 文件，重启服务器即可。</p>
+        <textarea id="f-output" spellcheck="false" readonly></textarea>
         <div class="actions">
-          <button class="btn btn-primary" id="f-copy-json">复制 JSON（GitHub Secrets：CONFIG）</button>
+          <button class="btn btn-primary" id="f-copy">复制命令</button>
           <button class="btn" id="f-reset">重置</button>
         </div>
       </section>
@@ -680,9 +681,11 @@ $('f-gist-row2').classList.add('show');
 } else {
 $('f-gist-preview').style.display = 'none';
 }
+
+    $('f-output').value = 'install=' + parts.join(' ');
   }
 
-  $('f-copy-json').addEventListener('click', async function() {
+  $('f-copy').addEventListener('click', async function() {
     var json = {};
     var uuid = $('f-uuid').value.trim();
     if (!uuid) {
@@ -717,22 +720,12 @@ $('f-gist-preview').style.display = 'none';
       else if (key === 'anpt') json.ANYTLS_PORT = port;
       else if (key === 'tupt') json.TUIC_PORT = port;
     });
-    var chatId = $('f-chat-id').value.trim();
-    if (chatId) json.CHAT_ID = chatId;
-    var botToken = $('f-bot-token').value.trim();
-    if (botToken) json.BOT_TOKEN = botToken;
-    var gistId = $('f-gist-id').value.trim();
-    if (gistId) json.GIST_ID = gistId;
-    var ghToken = $('f-gist-token').value.trim();
-    if (ghToken) json.GH_TOKEN = ghToken;
-    var name = $('f-name').value.trim();
-    if (gistId && name) {
-      json.GIST_SSHX_FILE = "sshx_" + name + ".txt";
-      json.GIST_SUB_FILE = "sub_" + name + ".txt";
-    }
-    var jsonStr = JSON.stringify(json, null, 2);
-    try { await navigator.clipboard.writeText(jsonStr); showToast('JSON 已复制到剪贴板'); }
-    catch(e) { showToast('复制失败'); }
+
+  $('f-copy').addEventListener('click', async function() {
+    var t = $('f-output');
+    t.select(); t.setSelectionRange(0, 99999);
+    try { await navigator.clipboard.writeText(t.value); showToast('已复制到剪贴板'); }
+    catch(e) { document.execCommand('copy'); showToast('已复制'); }
   });
 
   $('f-reset').addEventListener('click', function() { location.reload(); });
