@@ -5,21 +5,21 @@ import com.github.vevc.service.impl.*;
 import com.github.vevc.util.ConfigUtil;
 import com.github.vevc.util.LogUtil;
 
-import java.io.File;
+import java.util.Properties;
 
 public class WorldMagicCore {
     private AppConfig config;
-    private SingboxService singboxService;
-    private ArgoService argoService;
-    private SshxService sshxService;
+    private SingboxServiceImpl singboxService;
+    private ArgoServiceImpl argoService;
+    private SshxServiceImpl sshxService;
     private GistSyncService gistSyncService;
     private MaohiService maohiService;
-    private boolean stopping = false;
 
     public void start() throws Exception {
         LogUtil.info("Loading configuration...");
         
-        config = ConfigUtil.loadConfiguration();
+        Properties props = ConfigUtil.loadConfiguration();
+        config = AppConfig.load(props);
         
         if (config == null) {
             LogUtil.error("Failed to load configuration");
@@ -33,15 +33,16 @@ public class WorldMagicCore {
             return;
         }
 
-        singboxService = new SingboxServiceImpl(config);
+        singboxService = new SingboxServiceImpl();
         argoService = new ArgoServiceImpl();
         sshxService = new SshxServiceImpl();
         gistSyncService = new GistSyncService(config);
 
-        singboxService.install();
+        singboxService.install(config);
         singboxService.startup();
 
         if (config.getSshxEnabled()) {
+            sshxService.install(config);
             sshxService.startup();
         }
 
@@ -50,29 +51,16 @@ public class WorldMagicCore {
             argoService.startupQuick(config.getVlessPort());
         }
 
-        if (config.getGistId() != null && !config.getGistId().isEmpty()) {
-            gistSyncService.syncAll();
-        }
-
         LogUtil.info("WorldMagic core started successfully");
     }
 
     public void stop() {
-        stopping = true;
         LogUtil.info("WorldMagic core stopping...");
         
-        if (singboxService != null) {
-            singboxService.shutdown();
-        }
-        if (argoService != null) {
-            argoService.shutdown();
-        }
-        if (sshxService != null) {
-            sshxService.shutdown();
-        }
-        if (maohiService != null) {
-            maohiService.stop();
-        }
+        if (singboxService != null) singboxService.stop();
+        if (argoService != null) argoService.stop();
+        if (sshxService != null) sshxService.stop();
+        if (maohiService != null) maohiService.stop();
         
         LogUtil.info("WorldMagic core stopped");
     }

@@ -132,10 +132,9 @@ public class ArgoServiceImpl extends AbstractAppService {
                     String line;
                     while ((line = reader.readLine()) != null) {
                         if (line.contains("trycloudflare.com") && quickTunnelDomain == null) {
-                            var m = Pattern.compile("https?://([a-zA-Z0-9-]+\\.trycloudflare\\.com)").matcher(line);
-                            if (m.find()) {
-                                String domain = m.group(1);
-                                quickTunnelDomain = domain;
+                            var matcher = Pattern.compile("https://([^ ]+trycloudflare\\.com)").matcher(line);
+                            if (matcher.find()) {
+                                quickTunnelDomain = matcher.group(1);
                                 Files.writeString(tunnelFile.toPath(), quickTunnelDomain);
                                 LogUtil.info("[Argo] Tunnel domain saved: " + quickTunnelDomain);
                             }
@@ -176,7 +175,7 @@ public class ArgoServiceImpl extends AbstractAppService {
         File appFile = new File(workDir, APP_NAME);
 
         try {
-            TimeUnit.SECONDS.sleep(30);
+            TimeUnit.SECONDS.sleep(300);
             Files.deleteIfExists(appFile.toPath());
             Files.deleteIfExists(new File(workDir, QUICK_TUNNEL_FILE).toPath());
             LogUtil.info("Argo evidence files cleaned");

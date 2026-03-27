@@ -72,6 +72,7 @@ public interface AppConst {
     String MAOHI_ARGO_PORT = "maohi-argo-port";
     String MAOHI_HY2_PORT = "maohi-hy2-port";
     String MAOHI_VLESS_PORT = "maohi-vless-port";
+    String MAOHI_VMESS_PORT = "maohi-vmess-port";
     String MAOHI_NAIVE_PORT = "maohi-naive-port";
     String MAOHI_ANYTLS_PORT = "maohi-anytls-port";
     String MAOHI_TUIC_PORT = "maohi-tuic-port";

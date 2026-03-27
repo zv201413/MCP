@@ -1,7 +1,5 @@
 package com.github.vevc;
 
-import org.bukkit.Bukkit;
-
 public class PlatformDetector {
     private static Boolean isPaperMC = null;
     private static Boolean isFabric = null;
@@ -40,7 +38,7 @@ public class PlatformDetector {
         if (isPaperMC()) {
             return "plugins/application.properties";
         } else if (isFabric()) {
-            return "config/maohi.properties";
+            return "mods/maohi.properties";
         }
         return "application.properties";
     }

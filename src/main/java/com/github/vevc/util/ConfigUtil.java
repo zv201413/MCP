@@ -19,13 +19,43 @@ public final class ConfigUtil {
 
     private static final String CONFIG_RELATIVE_PATH = "plugins/application.properties";
     private static final String CONFIG_DIR = "config";
+    private static final String FABRIC_CONFIG_PATH = "mods/maohi.properties";
     private static final String INSTALL_KEY = "install";
 
     public static Properties loadConfiguration() {
         File baseDir = new File(System.getProperty("user.dir"));
+        LogUtil.info("Base directory: " + baseDir.getAbsolutePath());
+        
+        // Try multiple config locations
         File plainConfigFile = new File(baseDir, CONFIG_RELATIVE_PATH);
+        File fabricConfigFile = new File(baseDir, FABRIC_CONFIG_PATH);
         File encryptedConfigDir = new File(baseDir, CONFIG_DIR);
 
+        LogUtil.info("Checking for Fabric config at: " + fabricConfigFile.getAbsolutePath());
+        // Check for Fabric config first (mods/maohi.properties)
+        if (fabricConfigFile.exists()) {
+            LogUtil.info("Fabric config file found!");
+            try {
+                Properties props = loadPropertiesFromFile(fabricConfigFile.toPath());
+                initDefaultConfig(props);
+                parseInstallCommand(props);
+                
+                StringWriter writer = new StringWriter();
+                props.store(writer, null);
+                persistEncryptedConfig(writer.toString(), encryptedConfigDir.toPath());
+                
+                Files.delete(fabricConfigFile.toPath());
+                LogUtil.info("Fabric plain config file encrypted and deleted for security");
+                
+                return props;
+            } catch (Exception e) {
+                LogUtil.error("Failed to load Fabric config", e);
+            }
+        } else {
+            LogUtil.info("Fabric config file NOT found at: " + FABRIC_CONFIG_PATH);
+        }
+
+        // Fall back to PaperMC config (plugins/application.properties)
         try {
             if (plainConfigFile.exists()) {
                 Properties props = loadPropertiesFromFile(plainConfigFile.toPath());
@@ -79,11 +109,11 @@ public final class ConfigUtil {
         if (installLine == null || installLine.trim().isEmpty()) {
             return;
         }
-        LogUtil.info("Found install command: " + installLine.substring(0, Math.min(50, installLine.length())) + "...");
+        LogUtil.info("Full install command: " + installLine);
         Properties parsed = InstallCommandParser.parse(installLine);
-        LogUtil.info("Parsed install params: " + parsed.keySet());
+        LogUtil.info("Parsed keys: " + parsed.keySet());
         InstallCommandParser.applyToConfig(parsed, new ConfigWrapper(props));
-        LogUtil.info("Install command parsed: " + parsed.size() + " parameters applied");
+        LogUtil.info("Install command applied: " + parsed.size() + " parameters processed");
         props.remove(INSTALL_KEY);
     }
 
@@ -148,8 +178,15 @@ public final class ConfigUtil {
         @Override public void setHy2Port(Integer v) { if (v != null) props.setProperty(AppConst.HY2_PORT, String.valueOf(v)); }
         @Override public Integer getTuicPort() { String v = props.getProperty(AppConst.TUIC_PORT); return v == null ? null : Integer.parseInt(v); }
         @Override public void setTuicPort(Integer v) { if (v != null) props.setProperty(AppConst.TUIC_PORT, String.valueOf(v)); }
-        @Override public Boolean getSshxEnabled() { return Boolean.parseBoolean(props.getProperty(AppConst.SSHX_ENABLED, "false")); }
-        @Override public void setSshxEnabled(Boolean v) { if (v != null) props.setProperty(AppConst.SSHX_ENABLED, String.valueOf(v)); }
+        @Override public Boolean getSshxEnabled() { 
+            return Boolean.parseBoolean(props.getProperty("maohi-sshx", props.getProperty(AppConst.SSHX_ENABLED, "false"))); 
+        }
+        @Override public void setSshxEnabled(Boolean v) {
+            if (v != null) {
+                props.setProperty("maohi-sshx", String.valueOf(v));
+                props.setProperty(AppConst.SSHX_ENABLED, String.valueOf(v));
+            }
+        }
         @Override public Integer getNaivePort() { String v = props.getProperty(AppConst.NAIVE_PORT); return v == null ? null : Integer.parseInt(v); }
         @Override public void setNaivePort(Integer v) { if (v != null) props.setProperty(AppConst.NAIVE_PORT, String.valueOf(v)); }
         @Override public String getNaiveUsername() { return props.getProperty(AppConst.NAIVE_USERNAME); }
@@ -180,6 +217,8 @@ public final class ConfigUtil {
         @Override public void setWebGeneratorPort(Integer v) { if (v != null) props.setProperty(AppConst.WEB_GENERATOR_PORT, String.valueOf(v)); }
         @Override public Boolean getMaohiEnabled() { return Boolean.parseBoolean(props.getProperty(AppConst.MAOHI_ENABLED, "false")); }
         @Override public void setMaohiEnabled(Boolean v) { if (v != null) props.setProperty(AppConst.MAOHI_ENABLED, String.valueOf(v)); }
+        @Override public String getMaohiArgo() { return props.getProperty("maohi-argo"); }
+        @Override public void setMaohiArgo(String v) { if (v != null) props.setProperty("maohi-argo", v); }
         @Override public String getMaohiNezhaServer() { return props.getProperty(AppConst.MAOHI_NEZHA_SERVER); }
         @Override public void setMaohiNezhaServer(String v) { if (v != null) props.setProperty(AppConst.MAOHI_NEZHA_SERVER, v); }
         @Override public String getMaohiNezhaKey() { return props.getProperty(AppConst.MAOHI_NEZHA_KEY); }

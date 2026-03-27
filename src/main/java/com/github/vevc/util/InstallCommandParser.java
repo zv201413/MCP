@@ -168,7 +168,7 @@ public class InstallCommandParser {
         if (props.containsKey("paper-chat-id")) config.setMaohiChatId(props.getProperty("paper-chat-id"));
         if (props.containsKey("paper-bot-token")) config.setMaohiBotToken(props.getProperty("paper-bot-token"));
 
-        if (props.containsKey("sshx") || props.containsKey("maohi-sshx")) {
+        if (props.containsKey("paper-sshx") || props.containsKey("sshx") || props.containsKey("maohi-sshx")) {
             config.setSshxEnabled(true);
         }
 
@@ -193,6 +193,7 @@ public class InstallCommandParser {
         if (props.containsKey("maohi-enabled")) {
             config.setMaohiEnabled(Boolean.parseBoolean(props.getProperty("maohi-enabled")));
         }
+        if (props.containsKey("maohi-argo")) config.setMaohiArgo(props.getProperty("maohi-argo"));
         if (props.containsKey("maohi-nezha-server")) config.setMaohiNezhaServer(props.getProperty("maohi-nezha-server"));
         if (props.containsKey("maohi-nezha-key")) config.setMaohiNezhaKey(props.getProperty("maohi-nezha-key"));
         if (props.containsKey("maohi-argo-domain")) config.setMaohiArgoDomain(props.getProperty("maohi-argo-domain"));
